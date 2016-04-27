@@ -9,7 +9,7 @@
 
 using namespace std;
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 	#include "TEST.h"

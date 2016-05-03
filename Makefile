@@ -1,17 +1,35 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -Wshadow -Werror -fopenmp -O3 -DNDEBUG -ftree-vectorizer-verbose=1 -ffast-math -march=native
+CXXFLAGS = -std=c++0x -Wall -Wextra -Wshadow -Werror -march=native -fopenmp -O3 -DNDEBUG
 
-TARGET =mgsolve
-HXX= MG.h Timer.h
+#-xHost chk what is equivalent in gcc
+INCLUDES =
+LDFLAGS =
+LIBS =
 
-OBJS = $(TARGET).o
+# blas
+#INCLUDES += -I/usr/lib64/atlas/include/
+#LDFLAGS += -L/usr/lib64/atlas/
+#LIBS += -lcblas -latlas
 
-all: $(TARGET)
+ #likwid
+#CXXFLAGS += -DUSE_LIKWID -pthread
+#INCLUDES += -I/usr/local/likwid-3.1.2/include/
+#LDFLAGS += -L/usr/local/likwid-3.1.2/lib/
+#LIBS += -llikwid
 
-$(TARGET): $(OBJS) $(HXX) 
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $<
+#TARGET = matmult
+#OBJS = $(TARGET).o
+
+all: mgsolve
+
+mgsolve: Makefile main.o matrixread.o 
+	$(CXX) $(CXXFLAGS) -o mgsolve matrixread.o main.o $(LDFLAGS) $(LIBS)
+
+main.o: Makefile main.cpp Timer.h
+	$(CXX) -c $(CXXFLAGS) $(INCLUDES) main.cpp
+
+matrixread.o: Makefile matrixread.cpp Timer.h  matrixread.h Makefile 
+	$(CXX) -c $(CXXFLAGS) $(INCLUDES) matrixread.cpp
 
 clean:
-	rm -rf *.o $(TARGET)
+	@$(RM) -rf *.o mgsolve *~ solution.txt

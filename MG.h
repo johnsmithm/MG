@@ -74,10 +74,10 @@ class MG{
 					/*
 					check what point it is: between two vertical(horisontal,diagonal) point or the point to be get.
 					use if condition.
-					vertical((is added to four points))f[lev+1][i*(nr/2+1)+j/2] += residialCell/2; f[lev+1][i*(nr/2-1)+j/2] += residialCell/2;
-					horisontal((is added to four points))f[lev+1][i*(nr/2)+j/2+1] += residialCell/2; f[lev+1][i*(nr/2)+j/2-1] += residialCell/2;
+					vertical((is added to two points))f[lev+1][i*(nr/2+1)+j/2] += residialCell/2; f[lev+1][i*(nr/2-1)+j/2] += residialCell/2;
+					horisontal((is added to two points))f[lev+1][i*(nr/2)+j/2+1] += residialCell/2; f[lev+1][i*(nr/2)+j/2-1] += residialCell/2;
 					diagonal(is added to four points) f[lev+1][i*(nr/2+1)+j/2+1] += residialCell/4; f[lev+1][i*(nr/2-1)+j/2+1] += residialCell/4 ...
-					the point - f[lev+1][i*(nr/2)+j/2] += residialCell
+					the point(added to one point) - f[lev+1][i*(nr/2)+j/2] += residialCell
 					TODO - get the correct indices
 					*/
 				}

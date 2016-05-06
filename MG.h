@@ -69,7 +69,7 @@ class MG{
 					+ LR*(grids[lev][i+nr+j+1]+grids[lev][i*nr+j-1]) + MIJ*grids[lev][i*nr+j]) + f[lev][i*nr+j];
 					
 					//from small matrix from rezidual grids[lev+1]
-					//grid[lev+1][indices2] += residialCell * somesclaler(1/2,1,1/4); todo
+					//f[lev+1][indices2] += residialCell * somesclaler(1/2,1,1/4); todo
 				}
 		}
 

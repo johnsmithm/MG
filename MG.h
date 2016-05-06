@@ -60,8 +60,9 @@ class MG{
 			//for
 			int nr = (1<<(l-lev))+1;
 			double TB = 1./((nr-1)*(nr-1)), MIJ = 2*TB, LR = TB; // here we have the stencil
+			
+			// todo: set f[lev+1] to 0
 
-			//black nodes
 			for(int i=1;i<nr-1;++i)
 				for(int j=1;j<nr-1;j+=1){
 					//calculate rezidual
@@ -70,6 +71,15 @@ class MG{
 					
 					//from small matrix from rezidual grids[lev+1]
 					//f[lev+1][indices2] += residialCell * somesclaler(1/2,1,1/4); todo
+					/*
+					check what point it is: between two vertical(horisontal,diagonal) point or the point to be get.
+					use if condition.
+					vertical((is added to four points))f[lev+1][i*(nr/2+1)+j/2] += residialCell/2; f[lev+1][i*(nr/2-1)+j/2] += residialCell/2;
+					horisontal((is added to four points))f[lev+1][i*(nr/2)+j/2+1] += residialCell/2; f[lev+1][i*(nr/2)+j/2-1] += residialCell/2;
+					diagonal(is added to four points) f[lev+1][i*(nr/2+1)+j/2+1] += residialCell/4; f[lev+1][i*(nr/2-1)+j/2+1] += residialCell/4 ...
+					the point - f[lev+1][i*(nr/2)+j/2] += residialCell
+					TODO - get the correct indices
+					*/
 				}
 		}
 

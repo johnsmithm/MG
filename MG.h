@@ -37,7 +37,20 @@ class MG{
 		void smooth(double * a, int nr, double * f2){
 			//(red-black) Gauss-Seidel for relaxation
 			//make two for loops for red and black nodes, it is enough for the task
-			*a = 0 + nr + *f2;
+			
+			double TB = 1./((nr-1)*(nr-1)), MIJ = 2*TB, LR = TB; // here we have the stencil
+
+			//black nodes
+			for(int i=1;i<nr-1;i=i+2)
+				for(int j=(i%2?1:2);j<nr-1;j+=2)
+					a[i*nr+j] = TB*(a[(i-1)*nr+j]+a[(i+1)*nr]+j) + LR*(a[i+nr+j+1]+a[i*nr+j-1]) + MIJ*f2[i*nr+j];
+
+
+			//red nodes
+			for(int i=1;i<nr-1;i=i+2)
+				for(int j=(i%2?2:1);j<nr-1;j+=2)
+					a[i*nr+j] = TB*(a[(i-1)*nr+j]+a[(i+1)*nr]+j) + LR*(a[i+nr+j+1]+a[i*nr+j-1]) + MIJ*f2[i*nr+j];
+
 		}
 
 		void downsampling(double * a, int nr){//from nr to nr/2, a is nr*nr
@@ -64,28 +77,28 @@ class MG{
 		//nr - size of a matrix, note that the width is 2N when propragate through
 		//f - ponter to the left hand side the left hand side of size nr
 		// note 2N is the lenght of the total grid, so the second line of the grid (will be 2*N + a)
-		void recoursionMG(double * a, int nr, double * f2){
+		void recoursionMG(int lev){
 
-			for(int i=0;i<2;i++)
-				smooth(a,nr,f2);
+			for(int i=0;i<1;i++)
+				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
 
-			downsampling(a,nr);
+			return;
+			downsampling(grids[lev],(1<<(l-lev))+1);
 
 			//calculate f
 
-			if(nr == 1) {//use a solver
-				*a = -(*a);
+			if(lev == l) {//use a solver
+				//*a = -(*a);
 			}else{
 				//set to zero nr/2+1 times nr/2+1 entries on (a+nr) matrix
 				// nr/2+1 is because nr is odd, and inner grid begin with 1
-				recoursionMG( (a+nr), (nr/2), (f2+nr*nr));//Todo choose corect the indices!!!
+				recoursionMG(l+1);//Todo choose corect the indices!!!
 			}
 
-			interpolation(a+nr/2+1,nr);
+			interpolation(grids[lev],(1<<(l-lev))+1);
 	
 			for(int i=0;i<2;i++)
-				smooth(a,nr,f2);
-
+				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
 
 		}
 
@@ -104,16 +117,20 @@ class MG{
 	public:	
 		void solve(){
 			initiate();
-			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
-			//cerr<<"l:"<<l<<"; 1<<l+1:"<<((1<<l)+1)<<"\n";
-			//test_print(grids[0],((1<<l)+1));
+
+			cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
+			test_print(grids[0],((1<<l)+1));
+
 			//perform MG n times
-			for(int i=0;i<n;++i){
-				//recoursionMG(grids,N, f);
+			for(int i=0;i<1;++i){
+				recoursionMG(0);
 				cout<<"Step:"<<i<<"\n";
 				cout<<"Lnorm:"<<Lnorm()<<"\n";
 				cout<<"residualNorm:"<<residualNorm()<<"\n";
 			}	
+
+			cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
+			test_print(grids[0],((1<<l)+1));
 		}
 
 		void print_gnuplot(){

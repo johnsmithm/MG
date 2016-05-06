@@ -29,8 +29,8 @@ class MG{
 			}
 			double h = 1./(1<<l);
 			for(int i=0;i<N;++i){
-				grids[0][i*N+N-1] = sin(pi)*sinh(i*pi*h);//(i,1) - column
-				grids[0][N*(N-1)+i] = sin(pi*i*h)*sinh(pi);// (1,1) - row
+				grids[0][i*N+N-1] = sin(pi)*sinh(i*pi*h);//(i,1) -last column
+				grids[0][N*(N-1)+i] = sin(pi*i*h)*sinh(pi);// (1,i) -first row
 			}
 		}
 
@@ -41,13 +41,13 @@ class MG{
 			double TB = 1./((nr-1)*(nr-1)), MIJ = 2*TB, LR = TB; // here we have the stencil
 
 			//black nodes
-			for(int i=1;i<nr-1;i=i+2)
+			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?1:2);j<nr-1;j+=2)
 					a[i*nr+j] = TB*(a[(i-1)*nr+j]+a[(i+1)*nr]+j) + LR*(a[i+nr+j+1]+a[i*nr+j-1]) + MIJ*f2[i*nr+j];
 
 
 			//red nodes
-			for(int i=1;i<nr-1;i=i+2)
+			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?2:1);j<nr-1;j+=2)
 					a[i*nr+j] = TB*(a[(i-1)*nr+j]+a[(i+1)*nr]+j) + LR*(a[i+nr+j+1]+a[i*nr+j-1]) + MIJ*f2[i*nr+j];
 

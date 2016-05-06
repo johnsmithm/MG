@@ -8,22 +8,30 @@ class MG{
 	public:
 		MG(int l_, int n_):l(l_),n(n_),N((1<<l)+1){
 		//do something
+			//cerr<<l<<'\n';  
 		}
 
 		~MG(){}
 
 	private:
+		
 		void initiateExtra(){
-			grids = new double[N*N*2];// we will have a lot of non usefull entries
-			f = new double[N*N*2];
+			
 			//other boundary condition
 		}
 
 		void initiate(){
-			grids = new double[N*2*N];// we will have a lot of non usefull entries
-			f = new double[N * (N/2) + 1];
-			//initiate grid NXN
-			//initiate f first N entries
+			grids = new double*[l];
+			f = new double*[l];
+			for(int i=l;i;--i){// note we have l matrixes put one after another, no lost of memory!!!
+				grids[l-i] = new double[((1<<i)+1)*((1<<i)+1)];
+				f[l-i] = new double[((1<<i)+1)*((1<<i)+1)];				
+			}
+			double h = 1./(1<<l);
+			for(int i=0;i<N;++i){
+				grids[0][i*N+N-1] = sin(pi)*sinh(i*pi*h);//(i,1) - column
+				grids[0][N*(N-1)+i] = sin(pi*i*h)*sinh(pi);// (1,1) - row
+			}
 		}
 
 		void smooth(double * a, int nr, double * f2){
@@ -96,9 +104,12 @@ class MG{
 	public:	
 		void solve(){
 			initiate();
+			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
+			//cerr<<"l:"<<l<<"; 1<<l+1:"<<((1<<l)+1)<<"\n";
+			//test_print(grids[0],((1<<l)+1));
 			//perform MG n times
 			for(int i=0;i<n;++i){
-				recoursionMG(grids,N, f);
+				//recoursionMG(grids,N, f);
 				cout<<"Step:"<<i<<"\n";
 				cout<<"Lnorm:"<<Lnorm()<<"\n";
 				cout<<"residualNorm:"<<residualNorm()<<"\n";
@@ -109,14 +120,24 @@ class MG{
 		//print NXN grid 
 		}
 
+		void test_print(double a[], int nr){
+			for(int i=0;i<nr;++i){
+				for(int j=0;j<nr;++j)cerr<<a[i*nr+j]<<" ";
+				cerr<<'\n';
+			}
+		}
+
 
 	private:
 		int l,n,N;//levels, # v-cycles, # grid points including boundary
 
-		double *grids;// pointer to the N times 2N matrix that will be storing the grids
+
+		double **grids;// pointer to the N times 2N matrix that will be storing the grids
 		// Each grid left-top corner will be: *grids, *(grids+N), *(grids + N/2) and so on
 		// Note that the lenght of the matrix id 2N 
 
-		double * f; // right hand side -vector of vectors N
+		double ** f; // right hand side -vector of vectors N
 		//each vector for a size(the begining): *v , *(v+N), *(v+N+N/2) ans so on 
+
+		double pi = 3.14;
 };

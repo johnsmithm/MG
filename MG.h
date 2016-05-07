@@ -68,7 +68,7 @@ class MG{
 					//calculate rezidual
 					double rezidialCell =  - (TB*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr]+j)
 					+ LR*(grids[lev][i+nr+j+1]+grids[lev][i*nr+j-1]) + MIJ*grids[lev][i*nr+j]) + f[lev][i*nr+j];
-					
+					grids[lev][i+nr+j+1] += rezidialCell*0;
 					//from small matrix from rezidual grids[lev+1]
 					//f[lev+1][indices2] += residialCell * somesclaler(1/2,1,1/4); todo
 					/*
@@ -126,9 +126,25 @@ class MG{
 		}
 
 		double residualNorm(){
-			double norm = 0.;
-			//ToDo calculate the rezidual of the grid 
-			return norm;
+			double temp = 0, residuum=0;
+			int nr = (1<<l) +1 ;
+			int dom = (1<<l)-1;    // Size of the domain where we calculate the norm>> internal grid points
+			int lev=0;             // To check if this gives the updated fine matrix after interpolation or the original matrix
+                        double TB = 1./((nr-1)*(nr-1)), MIJ = 2*TB, LR = TB;
+			for ( int i=1;i< nr-1 ; i+=1)
+				{
+				for (int j=1;j<nr-1;j+=1)
+				     {
+					temp =  (TB*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr]+j)
+					+ LR*(grids[lev][i+nr+j+1]+grids[lev][i*nr+j-1]) - MIJ*grids[lev][i*nr+j]) + f[lev][i*nr+j];
+
+					residuum+=temp*temp;
+
+				      }
+				}
+ 					double norm= sqrt(residuum/(dom*dom));
+					return norm;
+
 		}
 
 	public:	

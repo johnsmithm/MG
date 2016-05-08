@@ -70,7 +70,8 @@ class MG{
 			//for
 			int nr = (1<<(l-lev))+1;
 			int nr1 = (1<<(l-lev-1))+1;
-			double TB = 1./((nr-1)*(nr-1)), MIJ = 2*TB, LR = TB; // here we have the stencil
+			double h = 1./(nr-1);          
+            double st = -1./(h*h), co = 4./(h*h);
 			
 			//  set f[lev+1] to 0
 			for(int i=0;i<nr1;++i)
@@ -80,9 +81,10 @@ class MG{
 			for(int i=1;i<nr-1;++i)
 				for(int j=1;j<nr-1;j+=1){
 					//calculate rezidual
-					double rezidialCell =  - (TB*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr]+j)
-					+ LR*(grids[lev][i+nr+j+1]+grids[lev][i*nr+j-1]) + MIJ*grids[lev][i*nr+j]) + f[lev][i*nr+j];
-					//cout<<i<<" j="<<j<<" r="<<rezidialCell<<" ";
+					double rezidialCell = f[lev][i*nr+j]  - (st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
+					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]) ;
+					//rezidialCell = sqrt(rezidialCell*rezidialCell); 
+					//cout<<i<<" j="<<j<<" r="<<rezidialCell<<" \n";
 					//from small matrix from rezidual grids[lev+1]
 					//f[lev+1][indices2] += residialCell * somesclaler(1/2,1,1/4);
 					if(i%2==0 && j%2==0){//the point to be restricted

@@ -184,8 +184,11 @@ class MG{
 
 			if(lev+2 == l) {//use a solver
 				//todo calculate the solution
-				double h = 1.;
-				grids[lev+1][1*3+1] = f[lev+1][1*3+1]/(h*h);//for testing
+				double h = 1./8;
+				double co = 4./(h*h), st = -1./(h*h);
+				int nr = 3;
+				grids[lev+1][1*3+1] = (st*(grids[lev+1][(1-1)*nr+1]+grids[lev+1][(1+1)*nr+1])
+				 + st*(grids[lev+1][1*nr+1+1]+grids[lev+1][1*nr+1-1]) + f[lev+1][1*nr+1])/co;//for testing
 			}else{
 				int nr = (1<<(l-lev-1))+1;
 				for(int i=0;i<nr;++i)

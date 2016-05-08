@@ -129,11 +129,43 @@ class MG{
 		void interpolation(int lev){//from nr/2 to nr, (a) is (nr/2)*(nr/2)
 			//bi-linear interpolation
 			int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1;
+
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;++j){
 					//construct each cell
 					//amd so on more 9 times, or can use the stencil and one more for loop
-					//grid[lev][indices2] += grid[lev+1][indices1] * somesclaler(1/2,1,1/4); todo
+					//grids[lev][indices2] += grids[lev+1][indices1] * somesclaler(1/2,1,1/4); 
+					if(i%2==0 && j%2==0){//the point to be restricted
+						grids[lev][(i)*nr+j] += grids[lev+1][(i/2)*nr1+j/2];
+						//cout<<"the cell\n";
+					}else{
+						if(i%2==1 && j%2==1){//we add to the diagonal
+							//cout<<"diagonal"<<"\n";
+							if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i+1)/2)*(nr1)+(j+1)/2]/4.;//right top							
+							if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j+1)/2]/4.;//right bottom
+							if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i+1)/2)*(nr1)+(j-1)/2]/4.;//left top
+							if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j-1)/2]/4.;//right bottom
+
+						}else if(i%2==1){//we add to top and bottom
+							//cout<<"tb\n";
+							if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i+1)/2)*(nr1)+(j)/2]/2.;// top							
+							if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j)/2]/2.;// bottom
+
+						}else{//we add to left and right		
+							//cout<<"rl\n";
+							if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i)/2)*(nr1)+(j+1)/2]/2.;//right 							
+							if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i)/2)*(nr1)+(j-1)/2]/2.;//right 
+						}
+					}
 				}
 			}
 			
@@ -141,23 +173,29 @@ class MG{
 
 		//level
 		void recoursionMG(int lev){
-
+			if(l != 2){cout<<"for that test l must be 2\n";return;}//for testing interpolation
 			for(int i=0;i<1;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
 
 			
 			downsampling(lev);
-			return;
+			//return;
 
-			if(lev == l) {//use a solver
+			if(lev+2 == l) {//use a solver
 				//todo calculate the solution
+				grids[lev+1][1*3+1] = 1;//for testing
 			}else{
 				recoursionMG(l+1);
 			}
 
+
+			//debug
+			cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
+			test_print(grids[0],((1<<l)+1));
+
 			interpolation(lev);
 	
-			for(int i=0;i<2;i++)
+			for(int i=0;i<0;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
 
 		}
@@ -195,8 +233,8 @@ class MG{
 			initiate();
 			
 			//debug
-			cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
-			test_print(grids[0],((1<<l)+1));
+			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
+			//test_print(grids[0],((1<<l)+1));
 
 		
 
@@ -212,8 +250,8 @@ class MG{
 			cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
 			test_print(grids[0],((1<<l)+1));
 
-			cerr<<((1<<(l-1))+1)<<"x"<<((1<<(l-1))+1)<<"\n";
-			test_print(f[1],((1<<(l-1))+1));
+			//cerr<<((1<<(l-1))+1)<<"x"<<((1<<(l-1))+1)<<"\n";
+			//test_print(f[1],((1<<(l-1))+1));
 		}
 
 		void print_gnuplot(){

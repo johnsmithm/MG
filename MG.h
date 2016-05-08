@@ -55,6 +55,7 @@ class MG{
 		}
 
 		bool notBoundary(int x, int nr){
+			if(x<0 || x>=nr*nr)return false;
 			return true;
 			if(x<nr)return false;
 			if(x >= nr*(nr-1))return false;
@@ -105,16 +106,16 @@ class MG{
 						}else if(i%2==1){//we add to top and bottom
 							//cout<<"tb\n";
 							if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
-								f[lev+1][((i+1)/2)*(nr1)+(j)/2] += rezidialCell/4.;// top							
+								f[lev+1][((i+1)/2)*(nr1)+(j)/2] += rezidialCell/2.;// top							
 							if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
-								f[lev+1][((i-1)/2)*(nr1)+(j)/2] += rezidialCell/4.;// bottom
+								f[lev+1][((i-1)/2)*(nr1)+(j)/2] += rezidialCell/2.;// bottom
 
 						}else{//we add to left and right		
 							//cout<<"rl\n";
 							if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
-								f[lev+1][((i)/2)*(nr1)+(j+1)/2] += rezidialCell/4.;//right 							
+								f[lev+1][((i)/2)*(nr1)+(j+1)/2] += rezidialCell/2.;//right 							
 							if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
-								f[lev+1][((i)/2)*(nr1)+(j-1)/2] += rezidialCell/4.;//right 
+								f[lev+1][((i)/2)*(nr1)+(j-1)/2] += rezidialCell/2.;//right 
 						}
 					}
 				}

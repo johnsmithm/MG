@@ -173,29 +173,29 @@ class MG{
 
 		//level
 		void recoursionMG(int lev){
-			if(l != 2){cout<<"for that test l must be 2\n";return;}//for testing interpolation
+
 			for(int i=0;i<1;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
-
-			
+			return;
 			downsampling(lev);
-			//return;
+			
 
-			if(lev+2 == l) {//use a solver
+			if(lev+2 == l || 1) {//use a solver
 				//todo calculate the solution
-				grids[lev+1][1*3+1] = 1;//for testing
+				double h = 1/2.;
+				grids[lev+1][1*3+1] = f[lev+1][1*3+1]/(h*h);//for testing
 			}else{
-				recoursionMG(l+1);
+				recoursionMG(lev+1);
 			}
 
 
 			//debug
-			cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
-			test_print(grids[0],((1<<l)+1));
+			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
+			//test_print(grids[0],((1<<l)+1));
 
 			interpolation(lev);
 	
-			for(int i=0;i<0;i++)
+			for(int i=0;i<1;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
 
 		}

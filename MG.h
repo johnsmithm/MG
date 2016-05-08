@@ -37,20 +37,20 @@ class MG{
 		void smooth(double * a, int nr, double * f2){
 			//(red-black) Gauss-Seidel for relaxation
 			//make two for loops for red and black nodes, it is enough for the task
-			
-			double TB = 1./((nr-1)*(nr-1)), MIJ = 2*TB, LR = TB; // here we have the stencil
+			double h = 1./(nr-1);
+			double st = 1./(h*h), co = 4./(h*h); // here we have the stencil
 			//todo calculate the stencil corect
 			
 			//black nodes
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?1:2);j<nr-1;j+=2)
-					a[i*nr+j] = TB*(a[(i-1)*nr+j]+a[(i+1)*nr]+j) + LR*(a[i+nr+j+1]+a[i*nr+j-1]) + MIJ*f2[i*nr+j];
+					a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j]) + st*(a[i+nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
 
 
 			//red nodes
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?2:1);j<nr-1;j+=2)
-					a[i*nr+j] = TB*(a[(i-1)*nr+j]+a[(i+1)*nr]+j) + LR*(a[i+nr+j+1]+a[i*nr+j-1]) + MIJ*f2[i*nr+j];
+					a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j] + a[i+nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
 
 		}
 
@@ -174,9 +174,9 @@ class MG{
 		//level
 		void recoursionMG(int lev){
 
-			for(int i=0;i<1;i++)
+			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
-			return;
+			//return;
 			downsampling(lev);
 			
 
@@ -185,6 +185,9 @@ class MG{
 				double h = 1/2.;
 				grids[lev+1][1*3+1] = f[lev+1][1*3+1]/(h*h);//for testing
 			}else{
+				int nr = (1<<(l-lev-1))+1;
+				for(int i=0;i<nr;++i)
+					for(int j=0;j<nr;++j)grids[lev+1][i*nr+j]=0;
 				recoursionMG(lev+1);
 			}
 
@@ -195,7 +198,7 @@ class MG{
 
 			interpolation(lev);
 	
-			for(int i=0;i<1;i++)
+			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
 
 		}
@@ -210,14 +213,15 @@ class MG{
 			double temp = 0, residuum=0;
 			int nr = (1<<l) +1 ;
 			int dom = (1<<l)-1;    // Size of the domain where we calculate the norm>> internal grid points
-			int lev=0;             // To check if this gives the updated fine matrix after interpolation or the original matrix
-            double TB = 1./((nr-1)*(nr-1)), MIJ = 2*TB, LR = TB;
+			int lev=0; 
+			double h = 1./(nr-1);            // To check if this gives the updated fine matrix after interpolation or the original matrix
+            double st = -1./(h*h), co = 4./(h*h);
 			for ( int i=1;i< nr-1 ; i+=1)
 				{
 				for (int j=1;j<nr-1;j+=1)
 				     {
-					temp =  -(TB*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr]+j)
-					+ LR*(grids[lev][i+nr+j+1]+grids[lev][i*nr+j-1]) - MIJ*grids[lev][i*nr+j]) + f[lev][i*nr+j];
+					temp = f[lev][i*nr+j] - ( st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
+					+ st*(grids[lev][i+nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]);
 
 					residuum+=temp*temp;
 
@@ -239,7 +243,7 @@ class MG{
 		
 
 			//perform MG n times
-			for(int i=0;i<1;++i){
+			for(int i=0;i<n;++i){
 				recoursionMG(0);
 				cout<<"Step:"<<i<<"\n";
 				cout<<"Lnorm:"<<Lnorm()<<"\n";

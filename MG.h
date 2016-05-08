@@ -44,13 +44,13 @@ class MG{
 			//black nodes
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?1:2);j<nr-1;j+=2)
-					a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j]) + st*(a[i+nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+					a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j]) + st*(a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
 
 
 			//red nodes
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?2:1);j<nr-1;j+=2)
-					a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j] + a[i+nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+					a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j] + a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
 
 		}
 
@@ -173,7 +173,7 @@ class MG{
 
 		//level
 		void recoursionMG(int lev){
-
+			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
 			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
 			//return;
@@ -221,7 +221,7 @@ class MG{
 				for (int j=1;j<nr-1;j+=1)
 				     {
 					temp = f[lev][i*nr+j] - ( st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
-					+ st*(grids[lev][i+nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]);
+					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]);
 
 					residuum+=temp*temp;
 

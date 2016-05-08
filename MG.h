@@ -180,9 +180,9 @@ class MG{
 			downsampling(lev);
 			
 
-			if(lev+2 == l || 1) {//use a solver
+			if(lev+2 == l) {//use a solver
 				//todo calculate the solution
-				double h = 1/2.;
+				double h = 1.;
 				grids[lev+1][1*3+1] = f[lev+1][1*3+1]/(h*h);//for testing
 			}else{
 				int nr = (1<<(l-lev-1))+1;

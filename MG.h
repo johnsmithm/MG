@@ -16,8 +16,25 @@ class MG{
 	private:
 		
 		void initiateExtra(){
-			
-			//other boundary condition
+			grids = new double*[l];
+			f = new double*[l];
+			for(int i=l;i;--i){// note we have l matrixes put one after another, no lost of memory!!!
+				grids[l-i] = new double[((1<<i)+1)*((1<<i)+1)];
+				f[l-i] = new double[((1<<i)+1)*((1<<i)+1)];				
+			}
+
+			for(int i=0;i<N;++i)
+				for(int j=0;j<N;++j)f[0][i*N+j]=2;
+
+			double h = 1./(1<<l);
+			for(int i=0;i<N;++i){
+				grids[0][i*N] = i*h*(i*h-1);//(i,1) -first column
+				grids[0][i] = -1;// (1,i) -first row
+				grids[0][i*N+N-1] = i*h*(i*h-1);//(i,1) -last column
+				grids[0][N*(N-1)+i] = -1;// (1,i) -last row
+				//to do : corect boundaries condition for rows
+			}
+
 		}
 
 		void initiate(){
@@ -264,6 +281,7 @@ class MG{
 	public:	
 		void solve(){
 			initiate();
+			//initiateExtra();
 			
 			//debug
 			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";

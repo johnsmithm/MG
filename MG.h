@@ -79,47 +79,49 @@ class MG{
 				for(int j=0;j<nr1;++j)
 					f[lev+1][i*nr1+j]=0;
 
-			for(int i=1;i<nr-1;++i)
+			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;j+=1){
 					//calculate rezidual
 					double rezidialCell = f[lev][i*nr+j]  - (st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
 					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]) ;
 					//rezidialCell = sqrt(rezidialCell*rezidialCell); 
 					//cout<<i<<" j="<<j<<" r="<<rezidialCell<<" \n";
+					//cout<<rezidialCell<<" ";
 					//from small matrix from rezidual grids[lev+1]
 					//f[lev+1][indices2] += residialCell * somesclaler(1/2,1,1/4);
 					if(i%2==0 && j%2==0){//the point to be restricted
-						f[lev+1][(i/2)*nr1+j/2] += rezidialCell;
+						f[lev+1][(i/2)*nr1+j/2] += rezidialCell/4.;
 						//cout<<"the cell\n";
 					}else{
 						if(i%2==1 && j%2==1){//we add to the diagonal
 							//cout<<"diagonal"<<"\n";
 							if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
-								f[lev+1][((i+1)/2)*(nr1)+(j+1)/2] += rezidialCell/4.;//right top							
+								f[lev+1][((i+1)/2)*(nr1)+(j+1)/2] += rezidialCell/16.;//right top							
 							if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
-								f[lev+1][((i-1)/2)*(nr1)+(j+1)/2] += rezidialCell/4.;//right bottom
+								f[lev+1][((i-1)/2)*(nr1)+(j+1)/2] += rezidialCell/16.;//right bottom
 							if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
-								f[lev+1][((i+1)/2)*(nr1)+(j-1)/2] += rezidialCell/4.;//left top
+								f[lev+1][((i+1)/2)*(nr1)+(j-1)/2] += rezidialCell/16.;//left top
 							if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
-								f[lev+1][((i-1)/2)*(nr1)+(j-1)/2] += rezidialCell/4.;//right bottom
+								f[lev+1][((i-1)/2)*(nr1)+(j-1)/2] += rezidialCell/16.;//right bottom
 
 						}else if(i%2==1){//we add to top and bottom
 							//cout<<"tb\n";
 							if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
-								f[lev+1][((i+1)/2)*(nr1)+(j)/2] += rezidialCell/2.;// top							
+								f[lev+1][((i+1)/2)*(nr1)+(j)/2] += rezidialCell/8.;// top							
 							if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
-								f[lev+1][((i-1)/2)*(nr1)+(j)/2] += rezidialCell/2.;// bottom
+								f[lev+1][((i-1)/2)*(nr1)+(j)/2] += rezidialCell/8.;// bottom
 
 						}else{//we add to left and right		
 							//cout<<"rl\n";
 							if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
-								f[lev+1][((i)/2)*(nr1)+(j+1)/2] += rezidialCell/2.;//right 							
+								f[lev+1][((i)/2)*(nr1)+(j+1)/2] += rezidialCell/8.;//right 							
 							if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
-								f[lev+1][((i)/2)*(nr1)+(j-1)/2] += rezidialCell/2.;//right 
+								f[lev+1][((i)/2)*(nr1)+(j-1)/2] += rezidialCell/8.;//right 
 						}
 					}
 				}
-
+				//cout<<'\n';
+			}
 			//set boundaries to zeor
 				for(int j=0;j<nr1;++j){
 					f[lev+1][(nr1-1)*nr1+j]=0;
@@ -180,16 +182,29 @@ class MG{
 			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
 			//return;
+			//debug
+			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" solution-before downs\n";
+			//test_print(grids[lev],((1<<(l-lev))+1));
+			//cerr<<"residual\n";
 			downsampling(lev);
+			//debug
+			//cerr<<((1<<(l-lev-1))+1)<<"x"<<((1<<(l-lev-1))+1)<<" f2- after downs\n";
+			//test_print(f[lev+1],((1<<(l-lev-1))+1));
 			
 
 			if(lev+2 == l) {//use a solver
 				//todo calculate the solution
-				double h = 1./8;
+				double h = 1./2;
 				double co = 4./(h*h), st = -1./(h*h);
 				int nr = 3;
+
+				for(int i =0;i<3;++i)
+					for(int j=0;j<3;++j)grids[lev+1][i*3+1]=0;
+
 				grids[lev+1][1*3+1] = (st*(grids[lev+1][(1-1)*nr+1]+grids[lev+1][(1+1)*nr+1])
 				 + st*(grids[lev+1][1*nr+1+1]+grids[lev+1][1*nr+1-1]) + f[lev+1][1*nr+1])/co;//for testing
+				//cout<<"sol1:"<<grids[lev+1][1*3+1]<<"\n";
+				//grids[lev+1][1*3+1] = 0.1;
 			}else{
 				int nr = (1<<(l-lev-1))+1;
 				for(int i=0;i<nr;++i)
@@ -199,10 +214,18 @@ class MG{
 
 
 			//debug
-			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
-			//test_print(grids[0],((1<<l)+1));
+			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" before\n";
+			//test_print(grids[lev],((1<<(l-lev))+1));
+
+				//cout<<"before residualNorm:"<<residualNorm(lev)<<"\n";
 
 			interpolation(lev);
+
+				//cout<<"after residualNorm:"<<residualNorm(lev)<<"\n";
+
+			//debug
+			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" after\n";
+			//test_print(grids[lev],((1<<(l-lev))+1));
 	
 			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
@@ -215,11 +238,11 @@ class MG{
 			return norm;
 		}
 
-		double residualNorm(){
+		double residualNorm(int lev){
 			double temp = 0, residuum=0;
-			int nr = (1<<l) +1 ;
-			int dom = (1<<l)-1;    // Size of the domain where we calculate the norm>> internal grid points
-			int lev=0; 
+			int nr = (1<<(l-lev)) +1 ;
+			int dom = (1<<(l-lev))-1;    // Size of the domain where we calculate the norm>> internal grid points
+			//int lev=0; 
 			double h = 1./(nr-1);            // To check if this gives the updated fine matrix after interpolation or the original matrix
             double st = -1./(h*h), co = 4./(h*h);
 			for ( int i=1;i< nr-1 ; i+=1)
@@ -253,7 +276,7 @@ class MG{
 				recoursionMG(0);
 				cout<<"Step:"<<i<<"\n";
 				cout<<"Lnorm:"<<Lnorm()<<"\n";
-				cout<<"residualNorm:"<<residualNorm()<<"\n";
+				cout<<"residualNorm:"<<residualNorm(0)<<"\n";
 			}	
 
 			//debug

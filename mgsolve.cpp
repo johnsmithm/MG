@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
 	
 
 
-		solver.print_gnuplot();
+		//solver.print_gnuplot();
 		cout<<"Total time:"<<time<<'\n';
 
    	#endif

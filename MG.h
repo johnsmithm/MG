@@ -1,6 +1,7 @@
 #include<math.h>
 #include<iostream>
 #include<fstream>
+#include<vector>
 
 using namespace std;
 
@@ -40,6 +41,7 @@ class MG{
 		void initiate(){
 			grids = new double*[l];
 			f = new double*[l];
+			resvector= new double[n];
 			for(int i=l;i;--i){// note we have l matrixes put one after another, no lost of memory!!!
 				grids[l-i] = new double[((1<<i)+1)*((1<<i)+1)];
 				f[l-i] = new double[((1<<i)+1)*((1<<i)+1)];				
@@ -250,8 +252,19 @@ class MG{
 		}
 
 		double Lnorm(){
-			double norm = 0.;
-			//ToDo calculate the rezidual of the grid 
+		  
+			double error = 0, temp = 0;
+			int nr = (1<<l) +1 ;
+			
+			double h = 1/(nr-1);
+			for ( int i=1; i<nr-1;i+=1){
+				for (int j=1;j<nr-1;j+=1)
+					{
+						temp =  grids[0][(i*nr)+j] - sin(pi*j*h)*sinh(pi*i*h);
+						error += temp*temp;
+					}
+						    }
+			double norm = sqrt(error);
 			return norm;
 		}
 
@@ -293,21 +306,73 @@ class MG{
 			for(int i=0;i<n;++i){
 				recoursionMG(0);
 				cout<<"Step:"<<i<<"\n";
-				cout<<"Lnorm:"<<Lnorm()<<"\n";
-				cout<<"residualNorm:"<<residualNorm(0)<<"\n";
-			}	
+			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
+					cout<<"residualNorm:"<<residualNorm(0)<<"\n";
+					resvector[i]= residualNorm(0);		
+				}
+								for (int j=1; j<n;j+=1)
+							{
+								double convergencerate = resvector[j]/resvector[j-1];
+								cout<< "convergence rate at step :  "<<" "<<j<<"="<< convergencerate<<"\n" ;
+							}
+				
+				cout<<"Lnorm:"<<Lnorm()<<"\n";	
 
 			//debug
-			cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
-			test_print(grids[0],((1<<l)+1));
-
+			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
+			//test_print(grids[0],((1<<l)+1));
+			writeGnuFile("solution.txt");
+			writeGnuFile1("realsol.txt");
 			//cerr<<((1<<(l-1))+1)<<"x"<<((1<<(l-1))+1)<<"\n";
 			//test_print(f[1],((1<<(l-1))+1));
 		}
 
-		void print_gnuplot(){
+bool writeGnuFile(const std::string& name){
+
+    std::cout << "Solution file being written " << std::endl;
+    std::ofstream file(name,std::ios::out);
+    //double hy = 1./l;
+    int nr = (1<<l)+1;
+    double h =  1./(nr-1);
+    if (file.is_open()) {
+        file << "#" << "x" << "\t" <<  "y" << "\t" << "u" << "\n";
+        for (int i=1; i<nr-1; i+=1)
+        {
+            for (int j=1; j <nr-1; j+=1)
+            {
+               file<< j*h << "\t" << i*h << "\t" <<grids[0][i*nr+j]<<"\n";
+            }
+        }
+     }
+
+    file.close();
+    return false;
+}
+
+bool writeGnuFile1(const std::string& name){
+
+    std::cout << "Solution file being written " << std::endl;
+    std::ofstream file(name,std::ios::out);
+    //double hy = 1./l;
+    int nr = (1<<l)+1;
+    double h =  1./(nr-1);
+    if (file.is_open()) {
+        file << "#" << "x" << "\t" <<  "y" << "\t" << "u" << "\n";
+		for(int i=1; i<nr-1;i+=1){
+			for(int j=1;j<nr-1;j+=1){
+				file<< j*h << "\t" << i*h << "\t" <<sin(pi*j*h)*sinh(pi*i*h)<<"\n";
+}}}
+
+file.close();
+return false;
+}
+
+//writeGnuFile1("realsol.txt");
+
+
+		/*void print_gnuplot(){
 		//print NXN grid todo
-		}
+		}*/
 
 		void test_print(double a[], int nr){
 			for(int i=0;i<nr;++i){
@@ -327,6 +392,9 @@ class MG{
 
 		double ** f; // right hand side - Vector od vector(matrix)
 		//Each grid  will be: (1^l)+1 + (1^l)+1 size and so on
+
+		double *resvector;  // Vector to store the residual norms
+
 
 		double pi = 3.14;
 };

@@ -198,9 +198,9 @@ class MG{
 		//level
 		void recoursionMG(int lev){
 			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
-			for(int i=0;i<2;i++)
+			for(int i=0;i<20;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
-			//return;
+			return;
 			//debug
 			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" solution-before downs\n";
 			//test_print(grids[lev],((1<<(l-lev))+1));
@@ -256,7 +256,7 @@ class MG{
 			double error = 0, temp = 0;
 			int nr = (1<<l) +1 ;
 			
-			double h = 1/(nr-1);
+			double h = 1./(nr-1);
 			for ( int i=1; i<nr-1;i+=1){
 				for (int j=1;j<nr-1;j+=1)
 					{
@@ -308,15 +308,15 @@ class MG{
 				cout<<"Step:"<<i<<"\n";
 			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
 					cout<<"residualNorm:"<<residualNorm(0)<<"\n";
-					resvector[i]= residualNorm(0);		
+					resvector[i]= residualNorm(0);	
+					cout<<"Error Norm:"<<Lnorm()<<"\n";	
+					if(i>0){
+						double convergencerate = resvector[i]/resvector[i-1];
+						cout<< "convergence rate at step :  "<<" "<<i<<"="<< convergencerate<<"\n" ;
+					}
 				}
-								for (int j=1; j<n;j+=1)
-							{
-								double convergencerate = resvector[j]/resvector[j-1];
-								cout<< "convergence rate at step :  "<<" "<<j<<"="<< convergencerate<<"\n" ;
-							}
 				
-				cout<<"Lnorm:"<<Lnorm()<<"\n";	
+					
 
 			//debug
 			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
@@ -396,5 +396,5 @@ return false;
 		double *resvector;  // Vector to store the residual norms
 
 
-		double pi = 3.14;
+		double pi = 3.14159265359;
 };

@@ -322,7 +322,7 @@ class MG{
 			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
 			//test_print(grids[0],((1<<l)+1));
 			writeGnuFile("solution.txt");
-			writeGnuFile1("realsol.txt");
+			//writeGnuFile1("realsol.txt");
 			//cerr<<((1<<(l-1))+1)<<"x"<<((1<<(l-1))+1)<<"\n";
 			//test_print(f[1],((1<<(l-1))+1));
 		}
@@ -349,7 +349,7 @@ bool writeGnuFile(const std::string& name){
     return false;
 }
 
-bool writeGnuFile1(const std::string& name){
+/*bool writeGnuFile1(const std::string& name){
 
     std::cout << "Solution file being written " << std::endl;
     std::ofstream file(name,std::ios::out);
@@ -365,7 +365,7 @@ bool writeGnuFile1(const std::string& name){
 
 file.close();
 return false;
-}
+}*/
 
 //writeGnuFile1("realsol.txt");
 

@@ -1,0 +1,18 @@
+#!/usr/bin/gnuplot
+
+# Gnuplot script file for plotting data in file "errorplot.txt"
+      # This file is called   plotscript_Error_Plot
+      set terminal svg background rgb 'white'
+      set output 'Error_Plot.svg'
+      set autoscale                       
+      unset label                        
+      set grid
+      set xtic auto                          # set xtics automatically
+      set ytic auto			     # set ytics automatically
+      set title "Plot for Error versus Grid size"
+      set xlabel "Grid Size h"
+      set ylabel "Error L2 Norm"
+      set key inside top vertical left box
+      plot "errorplot.txt" using 1:2  w l lw 2 
+      
+      

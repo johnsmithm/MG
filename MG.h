@@ -198,9 +198,9 @@ class MG{
 		//level
 		void recoursionMG(int lev){
 			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
-			for(int i=0;i<20;i++)
+			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
-			return;
+			//return;
 			//debug
 			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" solution-before downs\n";
 			//test_print(grids[lev],((1<<(l-lev))+1));

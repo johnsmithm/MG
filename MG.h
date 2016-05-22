@@ -69,7 +69,7 @@ class MG{
 		void smooth(double * a, int nr, double * f2){
 			//(red-black) Gauss-Seidel for relaxation
 			//make two for loops for red and black nodes, it is enough for the task
-			double h = 1./(nr-1);
+			double h = 2./(nr-1);
 			double st = 1./(h*h), co = 4./(h*h); // here we have the stencil
 			//todo calculate the stencil corect
 			
@@ -93,7 +93,8 @@ class MG{
 		}
 
 		bool notBoundary(int x, int nr){
-			if(x<0 || x>=nr*nr)return false;
+			if(((x >= (((nr / 2)-1)*nr + (nr/2)) )&& (x >= ((nr / 2)*nr - 1) ) )) {return false;}
+			if(x<0 || x>=nr*nr){return false;}
 			return true;
 			if(x<nr)return false;
 			if(x >= nr*(nr-1))return false;
@@ -119,6 +120,8 @@ class MG{
 
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;j+=1){
+					if((i == (nr / 2) && j >= (nr / 2)))
+						continue;
 					//calculate rezidual
 					double rezidialCell = f[lev][i*nr+j]  - (st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
 					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]) ;
@@ -176,6 +179,8 @@ class MG{
 
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;++j){
+					if((i == (nr / 2) && j >= (nr / 2)))
+						continue;
 					//construct each cell
 					//amd so on more 9 times, or can use the stencil and one more for loop
 					//grids[lev][indices2] += grids[lev+1][indices1] * somesclaler(1/2,1,1/4); 
@@ -217,9 +222,9 @@ class MG{
 		//level
 		void recoursionMG(int lev){
 			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
-			for(int i=0;i<20;i++)
+			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
-			return;
+			//return;
 			//debug
 			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" solution-before downs\n";
 			//test_print(grids[lev],((1<<(l-lev))+1));
@@ -275,7 +280,7 @@ class MG{
 			double error = 0, temp = 0;
 			int nr = (1<<l) +1 ;
 			
-			double h = 1./(nr-1);
+			double h = 2./(nr-1);
 			for ( int i=1; i<nr-1;i+=1){
 				for (int j=1;j<nr-1;j+=1)
 					{
@@ -292,7 +297,7 @@ class MG{
 			int nr = (1<<(l-lev)) +1 ;
 			int dom = (1<<(l-lev))-1;    // Size of the domain where we calculate the norm>> internal grid points
 			//int lev=0; 
-			double h = 1./(nr-1);            // To check if this gives the updated fine matrix after interpolation or the original matrix
+			double h = 2./(nr-1);            // To check if this gives the updated fine matrix after interpolation or the original matrix
             double st = -1./(h*h), co = 4./(h*h);
 			for ( int i=1;i< nr-1 ; i+=1)
 				{

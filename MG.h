@@ -73,16 +73,22 @@ class MG{
 			double st = 1./(h*h), co = 4./(h*h); // here we have the stencil
 			//todo calculate the stencil corect
 			
+			//exclude from smoothing inner boundary
+			//int yIndexInnerBoundary = nr / 2;
+			//int xIndexInnerBoundary = nr / 2 ;
+
 			//black nodes
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?1:2);j<nr-1;j+=2)
-					a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j]) + st*(a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+					if(!(i == (nr / 2) && j >= (nr / 2)))
+						a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j]) + st*(a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
 
 
 			//red nodes
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?2:1);j<nr-1;j+=2)
-					a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j] + a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+					if(!(i == (nr / 2) && j >= (nr / 2)))
+						a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j] + a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
 
 		}
 
@@ -211,9 +217,9 @@ class MG{
 		//level
 		void recoursionMG(int lev){
 			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
-			for(int i=0;i<2;i++)
+			for(int i=0;i<20;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
-			//return;
+			return;
 			//debug
 			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" solution-before downs\n";
 			//test_print(grids[lev],((1<<(l-lev))+1));
@@ -316,13 +322,13 @@ class MG{
 		
 
 			//perform MG n times
-			for(int i=0;i<n && 0;++i){
+			for(int i=0;i<n;++i){
 				recoursionMG(0);
 				cout<<"Step:"<<i<<"\n";
 			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
 					cout<<"residualNorm:"<<residualNorm(0)<<"\n";
 					resvector[i]= residualNorm(0);	
-					cout<<"Error Norm:"<<Lnorm()<<"\n";	
+					//cout<<"Error Norm:"<<Lnorm()<<"\n";	
 					if(i>0){
 						double convergencerate = resvector[i]/resvector[i-1];
 						cout<< "convergence rate at step :  "<<" "<<i<<"="<< convergencerate<<"\n" ;

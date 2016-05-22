@@ -46,11 +46,24 @@ class MG{
 				grids[l-i] = new double[((1<<i)+1)*((1<<i)+1)];
 				f[l-i] = new double[((1<<i)+1)*((1<<i)+1)];				
 			}
-			double h = 1./(1<<l);
+			double h = 2./(1<<l);
+			double yTB = -1., xLR = -1;
 			for(int i=0;i<N;++i){
-				grids[0][i*N+N-1] = sin(pi)*sinh(i*pi*h);//(i,1) -last column
-				grids[0][N*(N-1)+i] = sin(pi*i*h)*sinh(pi);// (1,i) -first row
+				//r = ~/ (x^2+y^2) teta = tan^-1 (y/x)
+				// g(x,y) = r^1/2 * sin(teta/2)
+				grids[0][i*N] = sqrt(sqrt(1+yTB*yTB))*sin((atan(yTB/(-1.))+(yTB > 0 ? 2*pi : 2*pi))/2.); //sqrt((sqrt(1+yTB*yTB)-1)/2.);//(i,N) -first column
+				grids[0][i*N+N-1] = sqrt(sqrt(1+yTB*yTB))*sin((atan(yTB/(1.))+(yTB > 0 ? 0 : 4*pi))/2.); //sqrt((sqrt(1+yTB*yTB)-1)/2.);//(i,1) -last column
+				grids[0][N*(N-1)+i] = sqrt(sqrt(1+xLR*xLR))*sin((atan((-1.)/xLR)+(xLR > 0 ? 4*pi : 2*pi))/2.); // sqrt((sqrt(1+xLR*xLR)-(xLR > 0 ? xLR: -xLR))/2.);// (1,i) -first row
+				grids[0][i] = sqrt(sqrt(1+xLR*xLR))*sin((atan(1/xLR)+(xLR > 0 ? 0 : 2*pi))/2.); //sqrt((sqrt(1+xLR*xLR)-(xLR > 0 ? xLR: -xLR))/2.);// (N,i) -last row
+				yTB+=h;
+				xLR+=h;
+
+				//I	Use the calculator value
+				//II	Add 180° to the calculator value
+				//III	Add 180° to the calculator value
+				//IV	Add 360° to the calculator value
 			}
+			//cerr << "x="<<xLR<<" y="<<yTB<<"\n";
 		}
 
 		void smooth(double * a, int nr, double * f2){
@@ -303,7 +316,7 @@ class MG{
 		
 
 			//perform MG n times
-			for(int i=0;i<n;++i){
+			for(int i=0;i<n && 0;++i){
 				recoursionMG(0);
 				cout<<"Step:"<<i<<"\n";
 			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
@@ -319,10 +332,10 @@ class MG{
 					
 
 			//debug
-			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
-			//test_print(grids[0],((1<<l)+1));
-			writeGnuFile("solution.txt");
-			writeGnuFile1("realsol.txt");
+			cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
+			test_print(grids[0],((1<<l)+1));
+			//writeGnuFile("solution.txt");
+			//writeGnuFile1("realsol.txt");
 			//cerr<<((1<<(l-1))+1)<<"x"<<((1<<(l-1))+1)<<"\n";
 			//test_print(f[1],((1<<(l-1))+1));
 		}

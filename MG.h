@@ -25,7 +25,7 @@ class MG{
 			}
 
 			for(int i=0;i<N;++i)
-				for(int j=0;j<N;++j)f[0][i*N+j]=2;
+				for(int j=0;j<N;++j)f[0][i*N+j]=0;
 
 			double h = 1./(1<<l);
 			for(int i=0;i<N;++i){
@@ -47,17 +47,17 @@ class MG{
 				f[l-i] = new double[((1<<i)+1)*((1<<i)+1)];				
 			}
 			double h = 2./(1<<l);
-			double yTB = -1., xLR = -1;
+			double yTB = 1., xLR = -1;
 			for(int i=0;i<N;++i){
 				//r = ~/ (x^2+y^2) teta = tan^-1 (y/x)
 				// g(x,y) = r^1/2 * sin(teta/2)
-				grids[0][i*N] = sqrt(sqrt(1+yTB*yTB))*sin((atan(yTB/(-1.))+(yTB > 0 ? 2*pi : 2*pi))/2.); //sqrt((sqrt(1+yTB*yTB)-1)/2.);//(i,N) -first column
+				grids[0][i*N] = sqrt(sqrt(1+yTB*yTB))*sin((atan(yTB/(-1.))+2*pi)/2.); //sqrt((sqrt(1+yTB*yTB)-1)/2.);//(i,N) -first column
 				grids[0][i*N+N-1] = sqrt(sqrt(1+yTB*yTB))*sin((atan(yTB/(1.))+(yTB > 0 ? 0 : 4*pi))/2.); //sqrt((sqrt(1+yTB*yTB)-1)/2.);//(i,1) -last column
 				grids[0][N*(N-1)+i] = sqrt(sqrt(1+xLR*xLR))*sin((atan((-1.)/xLR)+(xLR > 0 ? 4*pi : 2*pi))/2.); // sqrt((sqrt(1+xLR*xLR)-(xLR > 0 ? xLR: -xLR))/2.);// (1,i) -first row
-				grids[0][i] = sqrt(sqrt(1+xLR*xLR))*sin((atan(1/xLR)+(xLR > 0 ? 0 : 2*pi))/2.); //sqrt((sqrt(1+xLR*xLR)-(xLR > 0 ? xLR: -xLR))/2.);// (N,i) -last row
-				yTB+=h;
+				grids[0][i] = sqrt(sqrt(1+xLR*xLR))*sin((atan(1./xLR)+(xLR > 0 ? 0 : 2*pi))/2.); //sqrt((sqrt(1+xLR*xLR)-(xLR > 0 ? xLR: -xLR))/2.);// (N,i) -last row
+				yTB-=h;
 				xLR+=h;
-
+				//sqrt(sqrt(yTB*yTB+xLR*xLR))*sin((atan(yTB/xLR)+(xLR > 0 ? (yTB > 0 ? 0 : 4*pi) : 2*pi))/2.);
 				//I	Use the calculator value
 				//II	Add 180° to the calculator value
 				//III	Add 180° to the calculator value
@@ -281,14 +281,20 @@ class MG{
 			int nr = (1<<l) +1 ;
 			
 			double h = 2./(nr-1);
-			for ( int i=1; i<nr-1;i+=1){
-				for (int j=1;j<nr-1;j+=1)
+			double yTB = 1., xLR = -1;
+			for ( int i=0; i<nr;i+=1){
+				for (int j=0;j<nr;j+=1)
 					{
-						temp =  grids[0][(i*nr)+j] - sin(pi*j*h)*sinh(pi*i*h);
+						temp =  grids[0][(i*nr)+j] - 
+						sqrt(sqrt(yTB*yTB+xLR*xLR))*sin((atan(yTB/xLR)+(xLR > 0 ? (yTB > 0 ? 0 : 4*pi) : 2*pi))/2.);
 						error += temp*temp;
+						//cerr<<error<<" ";
+						
+						xLR+=h;
 					}
+					yTB-=h;
 						    }
-			double norm = sqrt(error);
+			double norm = sqrt(error/(nr*nr));
 			return norm;
 		}
 
@@ -333,7 +339,7 @@ class MG{
 			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
 					cout<<"residualNorm:"<<residualNorm(0)<<"\n";
 					resvector[i]= residualNorm(0);	
-					//cout<<"Error Norm:"<<Lnorm()<<"\n";	
+					cout<<"Error Norm:"<<Lnorm()<<"\n";	
 					if(i>0){
 						double convergencerate = resvector[i]/resvector[i-1];
 						cout<< "convergence rate at step :  "<<" "<<i<<"="<< convergencerate<<"\n" ;

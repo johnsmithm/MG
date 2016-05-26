@@ -264,7 +264,7 @@ class MG{
 						error += temp*temp;
 					}
 						    }
-			double norm = sqrt(error);
+			double norm = sqrt(error/(nr*nr));
 			return norm;
 		}
 
@@ -321,8 +321,8 @@ class MG{
 			//debug
 			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
 			//test_print(grids[0],((1<<l)+1));
-			writeGnuFile("solution.txt");
-			writeGnuFile1("realsol.txt");
+			//writeGnuFile("solution.txt");
+			//writeGnuFile1("realsol.txt");
 			//cerr<<((1<<(l-1))+1)<<"x"<<((1<<(l-1))+1)<<"\n";
 			//test_print(f[1],((1<<(l-1))+1));
 		}

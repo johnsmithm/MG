@@ -16,26 +16,15 @@ class MG{
 
 	private:
 		
-		void initiateExtra(){
-			grids = new double*[l];
-			f = new double*[l];
-			for(int i=l;i;--i){// note we have l matrixes put one after another, no lost of memory!!!
-				grids[l-i] = new double[((1<<i)+1)*((1<<i)+1)];
-				f[l-i] = new double[((1<<i)+1)*((1<<i)+1)];				
-			}
+		
 
-			for(int i=0;i<N;++i)
-				for(int j=0;j<N;++j)f[0][i*N+j]=0;
+		double polar(double x, double y)
+		{ 
+			double r = sqrt((pow(x,2))+(pow(y,2)));
 
-			double h = 1./(1<<l);
-			for(int i=0;i<N;++i){
-				grids[0][i*N] = i*h*(i*h-1);//(i,1) -first column
-				grids[0][i] = -1;// (1,i) -first row
-				grids[0][i*N+N-1] = i*h*(i*h-1);//(i,1) -last column
-				grids[0][N*(N-1)+i] = -1;// (1,i) -last row
-				//to do : corect boundaries condition for rows
-			}
+		    double theta = atan2(y,x);
 
+			return sqrt(r)*sin(theta/2.);
 		}
 
 		void initiate(){
@@ -49,21 +38,16 @@ class MG{
 			double h = 2./(1<<l);
 			double yTB = 1., xLR = -1;
 			for(int i=0;i<N;++i){
-				//r = ~/ (x^2+y^2) teta = tan^-1 (y/x)
-				// g(x,y) = r^1/2 * sin(teta/2)
-				grids[0][i*N] = sqrt(sqrt(1+yTB*yTB))*sin((atan(yTB/(-1.))+2*pi)/2.); //sqrt((sqrt(1+yTB*yTB)-1)/2.);//(i,N) -first column
-				grids[0][i*N+N-1] = sqrt(sqrt(1+yTB*yTB))*sin((atan(yTB/(1.))+(yTB > 0 ? 0 : 4*pi))/2.); //sqrt((sqrt(1+yTB*yTB)-1)/2.);//(i,1) -last column
-				grids[0][N*(N-1)+i] = sqrt(sqrt(1+xLR*xLR))*sin((atan((-1.)/xLR)+(xLR > 0 ? 4*pi : 2*pi))/2.); // sqrt((sqrt(1+xLR*xLR)-(xLR > 0 ? xLR: -xLR))/2.);// (1,i) -first row
-				grids[0][i] = sqrt(sqrt(1+xLR*xLR))*sin((atan(1./xLR)+(xLR > 0 ? 0 : 2*pi))/2.); //sqrt((sqrt(1+xLR*xLR)-(xLR > 0 ? xLR: -xLR))/2.);// (N,i) -last row
+
+
+				grids[0][i*N] = polar(-1.,yTB);//(i,N) -first column
+				grids[0][i*N+N-1] = polar(1.,yTB);// (i,1) -last column
+				grids[0][N*(N-1)+i] = polar(xLR,-1.);// (1,i) -first row
+				grids[0][i] = polar(xLR,1.);// (N,i) -last row
 				yTB-=h;
 				xLR+=h;
-				//sqrt(sqrt(yTB*yTB+xLR*xLR))*sin((atan(yTB/xLR)+(xLR > 0 ? (yTB > 0 ? 0 : 4*pi) : 2*pi))/2.);
-				//I	Use the calculator value
-				//II	Add 180° to the calculator value
-				//III	Add 180° to the calculator value
-				//IV	Add 360° to the calculator value
+			
 			}
-			//cerr << "x="<<xLR<<" y="<<yTB<<"\n";
 		}
 
 		void smooth(double * a, int nr, double * f2){
@@ -89,10 +73,13 @@ class MG{
 				for(int j=(i%2?2:1);j<nr-1;j+=2)
 					if(!(i == (nr / 2) && j >= (nr / 2)))
 						a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j] + a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+					//else cerr<<'-';
+			//cerr<<"\n";
 
 		}
 
 		bool notBoundary(int x, int nr){
+			return true;
 			if(((x >= (((nr / 2)-1)*nr + (nr/2)) )&& (x >= ((nr / 2)*nr - 1) ) )) {return false;}
 			if(x<0 || x>=nr*nr){return false;}
 			return true;
@@ -120,8 +107,8 @@ class MG{
 
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;j+=1){
-					if((i == (nr / 2) && j >= (nr / 2)))
-						continue;
+					//if((i == (nr / 2) && j >= (nr / 2)))
+					//	continue;
 					//calculate rezidual
 					double rezidialCell = f[lev][i*nr+j]  - (st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
 					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]) ;
@@ -222,9 +209,9 @@ class MG{
 		//level
 		void recoursionMG(int lev){
 			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
-			for(int i=0;i<2;i++)
+			for(int i=0;i<200;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
-			//return;
+			return;
 			//debug
 			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" solution-before downs\n";
 			//test_print(grids[lev],((1<<(l-lev))+1));
@@ -283,15 +270,18 @@ class MG{
 			double h = 2./(nr-1);
 			double yTB = 1., xLR = -1;
 			for ( int i=0; i<nr;i+=1){
+				xLR = -1.;
 				for (int j=0;j<nr;j+=1)
 					{
-						temp =  grids[0][(i*nr)+j] - 
-						sqrt(sqrt(yTB*yTB+xLR*xLR))*sin((atan(yTB/xLR)+(xLR > 0 ? (yTB > 0 ? 0 : 4*pi) : 2*pi))/2.);
+						temp =  grids[0][(i*nr)+j] - polar(xLR,yTB);
+						//sqrt(sqrt(yTB*yTB+xLR*xLR))*sin((atan(yTB/xLR)+(xLR > 0 ? (yTB > 0 ? 0 : 4*pi) : 2*pi))/2.);
 						error += temp*temp;
-						//cerr<<error<<" ";
+						//cerr<<"x:"<<xLR<<"y:"<<yTB<<"-"
+						//cerr<<polar(xLR,yTB)<<" ";
 						
 						xLR+=h;
 					}
+					///cerr<<"\n";
 					yTB-=h;
 						    }
 			double norm = sqrt(error/(nr*nr));
@@ -309,6 +299,7 @@ class MG{
 				{
 				for (int j=1;j<nr-1;j+=1)
 				     {
+				     	if((i == (nr / 2) && j >= (nr / 2)))continue;
 					temp = f[lev][i*nr+j] - ( st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
 					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]);
 
@@ -349,8 +340,8 @@ class MG{
 					
 
 			//debug
-			cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
-			test_print(grids[0],((1<<l)+1));
+			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
+			//test_print(grids[0],((1<<l)+1));
 			//writeGnuFile("solution.txt");
 			//writeGnuFile1("realsol.txt");
 			//cerr<<((1<<(l-1))+1)<<"x"<<((1<<(l-1))+1)<<"\n";
@@ -363,15 +354,17 @@ bool writeGnuFile(const std::string& name){
     std::ofstream file(name,std::ios::out);
     //double hy = 1./l;
     int nr = (1<<l)+1;
-    double h =  1./(nr-1);
+    double h =  2./(nr-1);
+    double yTB = 1., xLR = -1;
     if (file.is_open()) {
         file << "#" << "x" << "\t" <<  "y" << "\t" << "u" << "\n";
-        for (int i=1; i<nr-1; i+=1)
-        {
-            for (int j=1; j <nr-1; j+=1)
+        for (int i=0; i<nr; i+=1)
+        {xLR = -1.;
+            for (int j=0; j <nr; j+=1)
             {
-               file<< j*h << "\t" << i*h << "\t" <<grids[0][i*nr+j]<<"\n";
-            }
+               file<< xLR << "\t" << yTB << "\t" <<grids[0][i*nr+j]<<"\n";
+               xLR+=h;
+            }yTB -= h;
         }
      }
 
@@ -381,17 +374,25 @@ bool writeGnuFile(const std::string& name){
 
 bool writeGnuFile1(const std::string& name){
 
-    std::cout << "Solution file being written " << std::endl;
+    std::cout << "Real Solution file being written " << std::endl;
     std::ofstream file(name,std::ios::out);
     //double hy = 1./l;
     int nr = (1<<l)+1;
-    double h =  1./(nr-1);
+    double h =  2./(nr-1);
+    double yTB = 1., xLR = -1;
     if (file.is_open()) {
         file << "#" << "x" << "\t" <<  "y" << "\t" << "u" << "\n";
-		for(int i=1; i<nr-1;i+=1){
-			for(int j=1;j<nr-1;j+=1){
-				file<< j*h << "\t" << i*h << "\t" <<sin(pi*j*h)*sinh(pi*i*h)<<"\n";
-}}}
+		for(int i=0; i<nr;i+=1){
+			xLR = -1.;
+			for(int j=0;j<nr;j+=1){
+				cerr<<"";
+				file<< xLR << "\t" << yTB << "\t" <<polar(xLR,yTB)<<"\n";
+						
+						xLR+=h;
+			}
+			yTB -= h;
+		}
+	}
 
 file.close();
 return false;

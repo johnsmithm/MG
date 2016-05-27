@@ -85,7 +85,7 @@ class MG{
 
 		bool notBoundary(int x, int nr){
 			//return true;
-			if(((x >= (((nr / 2))*nr + (nr/2)) )&& (x >= ((nr / 2 + 1)*nr - 1) ) )) {return false;}
+			//if(((x >= (((nr / 2))*nr + (nr/2)) )&& (x >= ((nr / 2 + 1)*nr - 1) ) )) {return false;}
 			if(x<0 || x>=nr*nr){return false;}
 			return true;
 			if(x<nr)return false;
@@ -112,8 +112,8 @@ class MG{
 
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;j+=1){
-					if((i == (nr / 2) && j >= (nr / 2)))
-						continue;
+					//if((i == (nr / 2) && j >= (nr / 2)))
+					//	continue;
 					//calculate rezidual
 					double rezidialCell = f[lev][i*nr+j]  - (st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
 					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]) ;
@@ -155,6 +155,7 @@ class MG{
 				}
 				//cout<<'\n';
 			}
+
 			//set boundaries to zeor
 				for(int j=0;j<nr1;++j){
 					f[lev+1][(nr1-1)*nr1+j]=0;
@@ -162,6 +163,9 @@ class MG{
 					f[lev+1][(j)*nr1+0]=0;
 					f[lev+1][(j)*nr1+nr1-1]=0;					
 				}
+
+				for(int j=nr1/2;j<nr1;++j)
+					f[lev+1][(nr1/2)*nr1+j]=0;
 		}
 
 		void interpolation(int lev){//from nr/2 to nr, (a) is (nr/2)*(nr/2)
@@ -171,8 +175,8 @@ class MG{
 
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;++j){
-					if((i == (nr / 2) && j >= (nr / 2)))
-						continue;
+					//if((i == (nr / 2) && j >= (nr / 2)))
+						//continue;
 					//construct each cell
 					//amd so on more 9 times, or can use the stencil and one more for loop
 					//grids[lev][indices2] += grids[lev+1][indices1] * somesclaler(1/2,1,1/4); 
@@ -209,6 +213,8 @@ class MG{
 				}
 			}
 			
+			for(int j=nr/2;j<nr;++j)
+				grids[lev][(nr/2)*nr+j]=0;
 		}
 
 		//level

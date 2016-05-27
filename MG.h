@@ -23,6 +23,8 @@ class MG{
 			double r = sqrt((pow(x,2))+(pow(y,2)));
 
 		    double theta = atan2(y,x);
+		    if(y<0)
+		    	theta+=pi*2;
 
 			return sqrt(r)*sin(theta/2.);
 		}
@@ -76,11 +78,14 @@ class MG{
 					//else cerr<<'-';
 			//cerr<<"\n";
 
+			//for(int i=nr/2;i<nr-1;++i)
+				//a[(nr/2)*nr + i] = 0;
+
 		}
 
 		bool notBoundary(int x, int nr){
-			return true;
-			if(((x >= (((nr / 2)-1)*nr + (nr/2)) )&& (x >= ((nr / 2)*nr - 1) ) )) {return false;}
+			//return true;
+			if(((x >= (((nr / 2))*nr + (nr/2)) )&& (x >= ((nr / 2 + 1)*nr - 1) ) )) {return false;}
 			if(x<0 || x>=nr*nr){return false;}
 			return true;
 			if(x<nr)return false;
@@ -107,8 +112,8 @@ class MG{
 
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;j+=1){
-					//if((i == (nr / 2) && j >= (nr / 2)))
-					//	continue;
+					if((i == (nr / 2) && j >= (nr / 2)))
+						continue;
 					//calculate rezidual
 					double rezidialCell = f[lev][i*nr+j]  - (st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
 					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]) ;
@@ -209,9 +214,9 @@ class MG{
 		//level
 		void recoursionMG(int lev){
 			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
-			for(int i=0;i<200;i++)
+			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
-			return;
+			//return;
 			//debug
 			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" solution-before downs\n";
 			//test_print(grids[lev],((1<<(l-lev))+1));
@@ -269,21 +274,31 @@ class MG{
 			
 			double h = 2./(nr-1);
 			double yTB = 1., xLR = -1;
+			//double tM = 0;
+			//int x1=0,y1=0;
 			for ( int i=0; i<nr;i+=1){
 				xLR = -1.;
 				for (int j=0;j<nr;j+=1)
 					{
 						temp =  grids[0][(i*nr)+j] - polar(xLR,yTB);
 						//sqrt(sqrt(yTB*yTB+xLR*xLR))*sin((atan(yTB/xLR)+(xLR > 0 ? (yTB > 0 ? 0 : 4*pi) : 2*pi))/2.);
+						if(temp<0)temp*=-1;
+						/*if(tM < temp){
+							tM = temp;
+							x1 = j;
+							y1 = i;
+						}*/
+						//tM = max((temp),tM);
 						error += temp*temp;
 						//cerr<<"x:"<<xLR<<"y:"<<yTB<<"-"
 						//cerr<<polar(xLR,yTB)<<" ";
 						
 						xLR+=h;
 					}
-					///cerr<<"\n";
+					//cerr<<"\n";
 					yTB-=h;
-						    }
+			}
+			//cerr<<nr<<" "<<x1<<" "<<y1<<" "<<tM<<"-\n";
 			double norm = sqrt(error/(nr*nr));
 			return norm;
 		}
@@ -342,7 +357,7 @@ class MG{
 			//debug
 			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
 			//test_print(grids[0],((1<<l)+1));
-			//writeGnuFile("solution.txt");
+			writeGnuFile("solution.txt");
 			//writeGnuFile1("realsol.txt");
 			//cerr<<((1<<(l-1))+1)<<"x"<<((1<<(l-1))+1)<<"\n";
 			//test_print(f[1],((1<<(l-1))+1));

@@ -10,6 +10,7 @@
 using namespace std;
 
 //#define DEBUG
+//#define CLUSTER
 
 #ifdef DEBUG
 	#include "TEST.h"
@@ -17,9 +18,9 @@ using namespace std;
 
 int main(int argc, char *argv[]){
 	(void) argc; //to suppress Warnings about unused argc
-	assert(argc>1);
+	assert(argc>0);
 	int l = atoi(argv[1]);
-	int n = atoi(argv[2]);
+	int n = 35;//atoi(argv[2]);
 	//cerr<<l<<'\n';  
 	//cerr<<l<<'\n'; 
 
@@ -29,18 +30,33 @@ int main(int argc, char *argv[]){
 	
 	#else
 
-		MG solver(l,n);
+		MG solver(l,n); 
+		#ifdef CLUSTER
+			solver.writeGnuFile("init.dat");
+			std::cout<<"Your Alias: "<<"teamAlias"<<std::endl;
+			struct timeval t0, t;
+			gettimeofday(&t0, NULL);	
+			
+		#else
+			siwir::Timer timer;
+	    #endif
 
-		siwir::Timer timer;
-	    
 		solver.solve();
 	    
-		double time = timer.elapsed();
-	
+		
+	 	#ifdef CLUSTER
+	 		gettimeofday(&t, NULL);
+	 		std::cout << "Wall clock time of MG execution: " <<
+			((int64_t)(t.tv_sec - t0.tv_sec) * (int64_t)1000000 +
+			(int64_t)t.tv_usec - (int64_t)t0.tv_usec) * 1e-3
+			<< " ms" << std::endl;
+			solver.writeGnuFile("solution.dat");
+		#else
+			double time = timer.elapsed();
+			cout<<"Total time:"<<time<<'\n';
+	    #endif
+	    
 
-
-		//solver.print_gnuplot();
-		cout<<"Total time:"<<time<<'\n';
 
    	#endif
 

@@ -28,7 +28,7 @@ class MG{
 
 			return sqrt(r)*sin(theta/2.);
 		}
-
+   public:
 		void initiate(){
 			grids = new double*[l];
 			f = new double*[l];
@@ -51,7 +51,7 @@ class MG{
 			
 			}
 		}
-
+private:
 		void smooth(double * a, int nr, double * f2){
 			//(red-black) Gauss-Seidel for relaxation
 			//make two for loops for red and black nodes, it is enough for the task
@@ -475,7 +475,7 @@ class MG{
 			//perform MG n times
 			for(int i=0;i<n;++i){
 				recoursionMG(0,1);
-				cout<<"Step:"<<i<<"\n";
+				/*cout<<"Step:"<<i<<"\n";
 			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
 					cout<<"residualNorm:"<<residualNorm(0)<<"\n";
 					resvector[i]= residualNorm(0);	
@@ -483,7 +483,7 @@ class MG{
 					if(i>0){
 						double convergencerate = resvector[i]/resvector[i-1];
 						cout<< "convergence rate at step :  "<<" "<<i<<"="<< convergencerate<<"\n" ;
-					}
+					}*/
 				}
 				
 					
@@ -491,7 +491,7 @@ class MG{
 			//debug
 			//cerr<<((1<<l)+1)<<"x"<<((1<<l)+1)<<"\n";
 			//test_print(grids[0],((1<<l)+1));
-			writeGnuFile("solution.txt");
+			//writeGnuFile("solution.txt");
 			//writeGnuFile1("realsol.txt");
 			//cerr<<((1<<(l-1))+1)<<"x"<<((1<<(l-1))+1)<<"\n";
 			//test_print(f[1],((1<<(l-1))+1));
@@ -499,7 +499,7 @@ class MG{
 
 bool writeGnuFile(const std::string& name){
 
-    std::cout << "Solution file being written " << std::endl;
+   // std::cout << "Solution file being written " << std::endl;
     std::ofstream file(name,std::ios::out);
     //double hy = 1./l;
     int nr = (1<<l)+1;

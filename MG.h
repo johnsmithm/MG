@@ -168,6 +168,135 @@ class MG{
 					f[lev+1][(nr1/2)*nr1+j]=0;
 		}
 
+		void downsamplingSol(int lev){
+			int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1;
+			double h = 1./(nr1-1);
+			
+			//  set f[lev+1] to 0
+			for(int i=0;i<nr1;++i)
+				for(int j=0;j<nr1;++j)
+					f[lev+1][i*nr1+j]=0;
+
+			for(int i=1;i<nr-1;++i){
+				for(int j=1;j<nr-1;j+=1){
+					//if((i == (nr / 2) && j >= (nr / 2)))
+					//	continue;
+					//calculate rezidual
+					double rezidialCell = grids[lev][i*nr+j];
+					//rezidialCell = sqrt(rezidialCell*rezidialCell); 
+					//cout<<i<<" j="<<j<<" r="<<rezidialCell<<" \n";
+					//cout<<rezidialCell<<" ";
+					//from small matrix from rezidual grids[lev+1]
+					//f[lev+1][indices2] += residialCell * somesclaler(1/2,1,1/4);
+					if(i%2==0 && j%2==0){//the point to be restricted
+						grids[lev+1][(i/2)*nr1+j/2] += rezidialCell/4.;
+						//cout<<"the cell\n";
+					}else{
+						if(i%2==1 && j%2==1){//we add to the diagonal
+							//cout<<"diagonal"<<"\n";
+							if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev+1][((i+1)/2)*(nr1)+(j+1)/2] += rezidialCell/16.;//right top							
+							if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev+1][((i-1)/2)*(nr1)+(j+1)/2] += rezidialCell/16.;//right bottom
+							if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev+1][((i+1)/2)*(nr1)+(j-1)/2] += rezidialCell/16.;//left top
+							if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev+1][((i-1)/2)*(nr1)+(j-1)/2] += rezidialCell/16.;//right bottom
+
+						}else if(i%2==1){//we add to top and bottom
+							//cout<<"tb\n";
+							if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
+								grids[lev+1][((i+1)/2)*(nr1)+(j)/2] += rezidialCell/8.;// top							
+							if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
+								grids[lev+1][((i-1)/2)*(nr1)+(j)/2] += rezidialCell/8.;// bottom
+
+						}else{//we add to left and right		
+							//cout<<"rl\n";
+							if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev+1][((i)/2)*(nr1)+(j+1)/2] += rezidialCell/8.;//right 							
+							if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev+1][((i)/2)*(nr1)+(j-1)/2] += rezidialCell/8.;//right 
+						}
+					}
+				}
+				//cout<<'\n';
+			}
+
+			//set correct boundaries
+			double yTB = 1., xLR = -1;
+			for(int i=0;i<nr1;++i){
+				grids[lev+1][i*nr1] = polar(-1.,yTB);//(i,N) -first column
+				grids[lev+1][i*nr1+nr1-1] = polar(1.,yTB);// (i,1) -last column
+				grids[lev+1][nr1*(nr1-1)+i] = polar(xLR,-1.);// (1,i) -first row
+				grids[lev+1][i] = polar(xLR,1.);// (N,i) -last row
+				yTB-=h;
+				xLR+=h;			
+			}
+
+			for(int j=nr1/2;j<nr1;++j)
+				grids[lev+1][(nr1/2)*nr1+j]=0;
+		}
+
+		void interpolateSol(int lev){//from nr/2 to nr, (a) is (nr/2)*(nr/2)
+			//bi-linear interpolation
+			int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1;
+
+			for(int i=1;i<nr-1;++i){
+				for(int j=1;j<nr-1;++j){
+					//if((i == (nr / 2) && j >= (nr / 2)))
+						//continue;
+					//construct each cell
+					//amd so on more 9 times, or can use the stencil and one more for loop
+					//grids[lev][indices2] += grids[lev+1][indices1] * somesclaler(1/2,1,1/4); 
+					if(i%2==0 && j%2==0){//the point to be restricted
+						grids[lev][(i)*nr+j] = grids[lev+1][(i/2)*nr1+j/2];
+						//cout<<"the cell\n";
+					}else{
+						if(i%2==1 && j%2==1){//we add to the diagonal
+							//cout<<"diagonal"<<"\n";
+							if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev][(i)*nr+j] = grids[lev+1][((i+1)/2)*(nr1)+(j+1)/2]/4.;//right top							
+							if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j+1)/2]/4.;//right bottom
+							if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i+1)/2)*(nr1)+(j-1)/2]/4.;//left top
+							if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j-1)/2]/4.;//right bottom
+
+						}else if(i%2==1){//we add to top and bottom
+							//cout<<"tb\n";
+							if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
+								grids[lev][(i)*nr+j] = grids[lev+1][((i+1)/2)*(nr1)+(j)/2]/2.;// top							
+							if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j)/2]/2.;// bottom
+
+						}else{//we add to left and right		
+							//cout<<"rl\n";
+							if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev][(i)*nr+j] = grids[lev+1][((i)/2)*(nr1)+(j+1)/2]/2.;//right 							
+							if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i)/2)*(nr1)+(j-1)/2]/2.;//right 
+						}
+					}
+				}
+			}
+
+			double yTB = 1., xLR = -1,h = 2./(nr-1);
+			for(int i=0;i<nr;++i){
+				grids[lev][i*nr] = polar(-1.,yTB);//(i,N) -first column
+				grids[lev][i*nr+nr-1] = polar(1.,yTB);// (i,1) -last column
+				grids[lev][nr*(nr-1)+i] = polar(xLR,-1.);// (1,i) -first row
+				grids[lev][i] = polar(xLR,1.);// (N,i) -last row
+				yTB-=h;
+				xLR+=h;			
+			}
+			
+			for(int j=nr/2;j<nr;++j)
+				grids[lev][(nr/2)*nr+j]=0;
+		}
+
 		void interpolation(int lev){//from nr/2 to nr, (a) is (nr/2)*(nr/2)
 			//bi-linear interpolation
 			int nr = (1<<(l-lev))+1;
@@ -218,39 +347,37 @@ class MG{
 		}
 
 		//level
-		void recoursionMG(int lev){
+		void recoursionMG(int lev, int vCycles){
 			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
 			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
+
+			if(vCycles == -1 && lev + 2 != l){
+				downsamplingSol(lev);
+				recoursionMG(lev+1,-1);
+				interpolateSol(lev);
+			}
+
 			//return;
 			//debug
 			//cerr<<((1<<(l-lev))+1)<<"x"<<((1<<(l-lev))+1)<<" solution-before downs\n";
 			//test_print(grids[lev],((1<<(l-lev))+1));
 			//cerr<<"residual\n";
-			downsampling(lev);
+			
 			//debug
 			//cerr<<((1<<(l-lev-1))+1)<<"x"<<((1<<(l-lev-1))+1)<<" f2- after downs\n";
 			//test_print(f[lev+1],((1<<(l-lev-1))+1));
 			
 
-			if(lev+2 == l) {//use a solver
-				//todo calculate the solution
-				double h = 1./2;
-				double co = 4./(h*h), st = -1./(h*h);
-				int nr = 3;
-
-				for(int i =0;i<3;++i)
-					for(int j=0;j<3;++j)grids[lev+1][i*3+1]=0;
-
-				grids[lev+1][1*3+1] = (st*(grids[lev+1][(1-1)*nr+1]+grids[lev+1][(1+1)*nr+1])
-				 + st*(grids[lev+1][1*nr+1+1]+grids[lev+1][1*nr+1-1]) + f[lev+1][1*nr+1])/co;//for testing
-				//cout<<"sol1:"<<grids[lev+1][1*3+1]<<"\n";
-				//grids[lev+1][1*3+1] = 0.1;
-			}else{
+			if(lev+2 != l) {
+				downsampling(lev);
 				int nr = (1<<(l-lev-1))+1;
 				for(int i=0;i<nr;++i)
-					for(int j=0;j<nr;++j)grids[lev+1][i*nr+j]=0;
-				recoursionMG(lev+1);
+					for(int j=0;j<nr;++j)grids[lev+1][i*nr+j]=0;//???
+
+				recoursionMG(lev+1,1);
+				interpolation(lev);
+				//recoursionMG(lev+1);
 			}
 
 
@@ -260,7 +387,7 @@ class MG{
 
 				//cout<<"before residualNorm:"<<residualNorm(lev)<<"\n";
 
-			interpolation(lev);
+			
 
 				//cout<<"after residualNorm:"<<residualNorm(lev)<<"\n";
 
@@ -344,9 +471,10 @@ class MG{
 
 		
 
+			recoursionMG(0,-1);//FMG
 			//perform MG n times
 			for(int i=0;i<n;++i){
-				recoursionMG(0);
+				recoursionMG(0,1);
 				cout<<"Step:"<<i<<"\n";
 			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
 					cout<<"residualNorm:"<<residualNorm(0)<<"\n";

@@ -2,6 +2,7 @@
 #include<iostream>
 #include<fstream>
 #include<vector>
+#include <omp.h>
 
 using namespace std;
 
@@ -10,6 +11,7 @@ class MG{
 		MG(int l_, int n_):l(l_),n(n_),N((1<<l)+1){
 		//do something
 			//cerr<<l<<'\n';  
+			omp_set_num_threads(32);
 		}
 
 		~MG(){}
@@ -32,10 +34,12 @@ class MG{
 		void initiate(){
 			grids = new double*[l];
 			f = new double*[l];
+			re = new double*[l];
 			resvector= new double[n];
 			for(int i=l;i;--i){// note we have l matrixes put one after another, no lost of memory!!!
 				grids[l-i] = new double[((1<<i)+1)*((1<<i)+1)];
-				f[l-i] = new double[((1<<i)+1)*((1<<i)+1)];				
+				f[l-i] = new double[((1<<i)+1)*((1<<i)+1)];		
+				re[l-i] = new double[((1<<i)+1)*((1<<i)+1)];			
 			}
 			double h = 2./(1<<l);
 			double yTB = 1., xLR = -1;
@@ -110,6 +114,7 @@ private:
 				for(int j=0;j<nr1;++j)
 					f[lev+1][i*nr1+j]=0;
 
+			#pragma omp parallel for schedule( static )
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;j+=1){
 					//if((i == (nr / 2) && j >= (nr / 2)))
@@ -128,27 +133,27 @@ private:
 					}else{
 						if(i%2==1 && j%2==1){//we add to the diagonal
 							//cout<<"diagonal"<<"\n";
-							if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
+							//if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
 								f[lev+1][((i+1)/2)*(nr1)+(j+1)/2] += rezidialCell/16.;//right top							
-							if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
+							//if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
 								f[lev+1][((i-1)/2)*(nr1)+(j+1)/2] += rezidialCell/16.;//right bottom
-							if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
+							//if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
 								f[lev+1][((i+1)/2)*(nr1)+(j-1)/2] += rezidialCell/16.;//left top
-							if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
+							//if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
 								f[lev+1][((i-1)/2)*(nr1)+(j-1)/2] += rezidialCell/16.;//right bottom
 
 						}else if(i%2==1){//we add to top and bottom
 							//cout<<"tb\n";
-							if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
+							//if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
 								f[lev+1][((i+1)/2)*(nr1)+(j)/2] += rezidialCell/8.;// top							
-							if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
+							//if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
 								f[lev+1][((i-1)/2)*(nr1)+(j)/2] += rezidialCell/8.;// bottom
 
 						}else{//we add to left and right		
 							//cout<<"rl\n";
-							if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
+							//if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
 								f[lev+1][((i)/2)*(nr1)+(j+1)/2] += rezidialCell/8.;//right 							
-							if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
+							//if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
 								f[lev+1][((i)/2)*(nr1)+(j-1)/2] += rezidialCell/8.;//right 
 						}
 					}
@@ -178,6 +183,7 @@ private:
 				for(int j=0;j<nr1;++j)
 					f[lev+1][i*nr1+j]=0;
 
+			#pragma omp parallel for schedule( static )
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;j+=1){
 					//if((i == (nr / 2) && j >= (nr / 2)))
@@ -195,27 +201,27 @@ private:
 					}else{
 						if(i%2==1 && j%2==1){//we add to the diagonal
 							//cout<<"diagonal"<<"\n";
-							if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
+							//if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
 								grids[lev+1][((i+1)/2)*(nr1)+(j+1)/2] += rezidialCell/16.;//right top							
-							if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
+							//if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
 								grids[lev+1][((i-1)/2)*(nr1)+(j+1)/2] += rezidialCell/16.;//right bottom
-							if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
+							//if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
 								grids[lev+1][((i+1)/2)*(nr1)+(j-1)/2] += rezidialCell/16.;//left top
-							if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
+							//if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
 								grids[lev+1][((i-1)/2)*(nr1)+(j-1)/2] += rezidialCell/16.;//right bottom
 
 						}else if(i%2==1){//we add to top and bottom
 							//cout<<"tb\n";
-							if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
+							//if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
 								grids[lev+1][((i+1)/2)*(nr1)+(j)/2] += rezidialCell/8.;// top							
-							if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
+							//if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
 								grids[lev+1][((i-1)/2)*(nr1)+(j)/2] += rezidialCell/8.;// bottom
 
 						}else{//we add to left and right		
 							//cout<<"rl\n";
-							if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
+							//if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
 								grids[lev+1][((i)/2)*(nr1)+(j+1)/2] += rezidialCell/8.;//right 							
-							if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
+							//if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
 								grids[lev+1][((i)/2)*(nr1)+(j-1)/2] += rezidialCell/8.;//right 
 						}
 					}
@@ -243,6 +249,7 @@ private:
 			int nr = (1<<(l-lev))+1;
 			int nr1 = (1<<(l-lev-1))+1;
 
+			#pragma omp parallel for schedule( static )
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;++j){
 					//if((i == (nr / 2) && j >= (nr / 2)))
@@ -256,27 +263,27 @@ private:
 					}else{
 						if(i%2==1 && j%2==1){//we add to the diagonal
 							//cout<<"diagonal"<<"\n";
-							if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
+							//if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
 								grids[lev][(i)*nr+j] = grids[lev+1][((i+1)/2)*(nr1)+(j+1)/2]/4.;//right top							
-							if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
+							//if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
 								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j+1)/2]/4.;//right bottom
-							if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
+							//if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
 								grids[lev][(i)*nr+j] += grids[lev+1][((i+1)/2)*(nr1)+(j-1)/2]/4.;//left top
-							if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
+							//if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
 								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j-1)/2]/4.;//right bottom
 
 						}else if(i%2==1){//we add to top and bottom
 							//cout<<"tb\n";
-							if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
+							//if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
 								grids[lev][(i)*nr+j] = grids[lev+1][((i+1)/2)*(nr1)+(j)/2]/2.;// top							
-							if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
+							//if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
 								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j)/2]/2.;// bottom
 
 						}else{//we add to left and right		
 							//cout<<"rl\n";
-							if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
+							//if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
 								grids[lev][(i)*nr+j] = grids[lev+1][((i)/2)*(nr1)+(j+1)/2]/2.;//right 							
-							if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
+							//if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
 								grids[lev][(i)*nr+j] += grids[lev+1][((i)/2)*(nr1)+(j-1)/2]/2.;//right 
 						}
 					}
@@ -293,6 +300,81 @@ private:
 				xLR+=h;			
 			}
 			
+			for(int j=nr/2;j<nr;++j)
+				grids[lev][(nr/2)*nr+j]=0;
+		}
+
+		void residualCalc(int lev){
+			int nr = (1<<(l-lev)) +1 ;
+			double h = 2./(nr-1);            // To check if this gives the updated fine matrix after interpolation or the original matrix
+            double st = -1./(h*h), co = 4./(h*h);
+			for ( int i=1;i< nr-1 ; i+=1)
+				{
+				for (int j=1;j<nr-1;j+=1)
+				     {
+				     	if((i == (nr / 2) && j >= (nr / 2)))continue;
+					re[lev][i*nr+j] = f[lev][i*nr+j] - ( st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
+					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]);
+
+
+				      }
+				}
+
+		}
+
+		void downsamplingSB(int lev){
+			residualCalc(lev);
+			int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1, id=0;
+
+			#pragma omp parallel for private(id) schedule( static )
+			for(int i=1;i<nr1-1;++i){
+				for(int j=1;j<nr1-1;++j){
+					id = 2*i*nr + j*2;
+					f[lev+1][i*nr1 + j] = 	re[lev][id]/4. + 
+
+					re[lev][id-1 + nr]/16.+
+					re[lev][id-1 + nr]/16.+
+					re[lev][id+1 - nr]/16.+
+					re[lev][id-1 - nr]/16.+
+
+					re[lev][id+1]/8.+
+					re[lev][id-1]/8. +
+
+					re[lev][id + nr]/8. + 
+					re[lev][id - nr]/8.;
+				}
+			}
+
+			for(int j=nr1/2;j<nr1;++j)
+					f[lev+1][(nr1/2)*nr1+j]=0;
+		}
+
+		void interpolationSB(int lev){
+			int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1, id=0;
+			double val = 0;
+
+			#pragma omp parallel for private(val,id) schedule( static )
+			for(int i=1;i<nr1-1;++i){
+				for(int j=1;j<nr1-1;++j){
+					id = 2*i*nr + j*2;
+					val  = grids[lev+1][i*nr1 + j];
+					grids[lev][id] += val;
+
+					grids[lev][id-1 + nr] += val/4.;
+					grids[lev][id-1 + nr] += val/4.;
+					grids[lev][id+1 - nr] += val/4.;
+					grids[lev][id-1 - nr] += val/4.;
+
+					grids[lev][id+1] += val/2.;
+					grids[lev][id-1] += val/2.;
+
+					grids[lev][id + nr] += val/2.;
+					grids[lev][id - nr] += val/2.;
+				}
+			}
+
 			for(int j=nr/2;j<nr;++j)
 				grids[lev][(nr/2)*nr+j]=0;
 		}
@@ -370,13 +452,15 @@ private:
 			
 
 			if(lev+2 != l) {
-				downsampling(lev);
+				//downsampling(lev);
+				downsamplingSB(lev);
 				int nr = (1<<(l-lev-1))+1;
 				for(int i=0;i<nr;++i)
 					for(int j=0;j<nr;++j)grids[lev+1][i*nr+j]=0;//???
 
 				recoursionMG(lev+1,1);
-				interpolation(lev);
+				//interpolation(lev);
+				interpolationSB(lev);
 				//recoursionMG(lev+1);
 			}
 
@@ -460,6 +544,8 @@ private:
 
 		}
 
+		
+
 	public:	
 		void solve(){
 			initiate();
@@ -475,7 +561,7 @@ private:
 			//perform MG n times
 			for(int i=0;i<n;++i){
 				recoursionMG(0,1);
-				/*cout<<"Step:"<<i<<"\n";
+				cout<<"Step:"<<i<<"\n";
 			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
 					cout<<"residualNorm:"<<residualNorm(0)<<"\n";
 					resvector[i]= residualNorm(0);	
@@ -483,7 +569,7 @@ private:
 					if(i>0){
 						double convergencerate = resvector[i]/resvector[i-1];
 						cout<< "convergence rate at step :  "<<" "<<i<<"="<< convergencerate<<"\n" ;
-					}*/
+					}
 				}
 				
 					
@@ -570,7 +656,7 @@ return false;
 		//Each grid  will be: (1^l)+1 + (1^l)+1 size and so on
 		
 
-		double ** f; // right hand side - Vector od vector(matrix)
+		double ** f, **re; // right hand side - Vector od vector(matrix)
 		//Each grid  will be: (1^l)+1 + (1^l)+1 size and so on
 
 		double *resvector;  // Vector to store the residual norms

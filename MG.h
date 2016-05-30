@@ -29,6 +29,37 @@ class MG{
 			return sqrt(r)*sin(theta/2.);
 		}
 
+		double getNr(int i, int j,int lev,int nr){
+			// black (0,0)
+			if((i%2==0 && j%2==0)||(i%2==1&&j%2==1)){
+				if(i%2==0)
+					return gridsB[lev][(i/2)*nr + j/2] ;
+				else
+					return gridsB[lev][(i*nr)/2 + j/2 - nr/2] ;
+			}else{
+				if(i%2==0)
+					return gridsR[lev][(i/2)*nr + j/2] ;
+				else
+					return  gridsR[lev][(i*nr)/2 + j/2 - nr/2] ;
+			}
+			return 0;
+		}
+
+		void setNr(int i,int j,int lev,int nr,int val){
+			// black (0,0)
+			if((i%2==0 && j%2==0)||(i%2==1&&j%2==1)){
+				if(i%2==0)
+					gridsB[lev][(i/2)*nr + j/2] = val;
+				else
+					gridsB[lev][(i*nr)/2 + j/2 - nr/2] = val;
+			}else{
+				if(i%2==0)
+					gridsR[lev][(i/2)*nr + j/2] = val;
+				else
+					gridsR[lev][(i*nr)/2 + j/2 - nr/2] = val;
+			}
+		}
+
 		void initiate(){
 			gridsR = new double*[l];
 			gridsB = new double*[l];
@@ -206,6 +237,8 @@ class MG{
 			}
 		}
 
+
+
 		void interpolation(int lev){//from nr/2 to nr, (a) is (nr/2)*(nr/2)
 
 			int nr = (1<<(l-lev)) +1 ; 
@@ -227,7 +260,8 @@ class MG{
 					if(!(i == (nr / 2) && j >= (nr / 2))){
 						clasifyI(aR,gridsR[lev+1],lev,i,j);
 					}
-			
+
+
 			//corect inner boundary
 			for(int j=nr/2;j<nr;j+=2){
 				gridsR[lev][((nr/2)*nr)/2+j/2]=0;
@@ -235,12 +269,66 @@ class MG{
 			}
 		}
 
+		void interpolation1(int lev){//from nr/2 to nr, (a) is (nr/2)*(nr/2)
+			//bi-linear interpolation
+			int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1;
+
+			for(int i=1;i<nr-1;++i){
+				for(int j=1;j<nr-1;++j){
+					//construct each cell
+					//amd so on more 9 times, or can use the stencil and one more for loop
+					//grids[lev][indices2] += grids[lev+1][indices1] * somesclaler(1/2,1,1/4); 
+					if(i%2==0 && j%2==0){//the point to be restricted
+						//grids[lev][(i)*nr+j] += grids[lev+1][(i/2)*nr1+j/2];
+						setNr(i,j,lev,nr,getNr(i/2,j/2,lev+1,nr1));
+						//cout<<"the cell\n";
+					}else{
+						if(i%2==1 && j%2==1){//we add to the diagonal
+							//cout<<"diagonal"<<"\n";
+							//if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
+								//grids[lev][(i)*nr+j] += grids[lev+1][((i+1)/2)*(nr1)+(j+1)/2]/4.;//right top
+								setNr(i,j,lev,nr,getNr((i+1)/2,(j+1)/2,lev+1,nr1)/4.);							
+							//if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
+								//grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j+1)/2]/4.;//right bottom
+								setNr(i,j,lev,nr,getNr((i-1)/2,(j+1)/2,lev+1,nr1)/4.);
+							//if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
+								//grids[lev][(i)*nr+j] += grids[lev+1][((i+1)/2)*(nr1)+(j-1)/2]/4.;//left top
+								setNr(i,j,lev,nr,getNr((i+1)/2,(j-1)/2,lev+1,nr1)/4.);
+							//if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
+								//grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j-1)/2]/4.;//right bottom
+								setNr(i,j,lev,nr,getNr((i-1)/2,(j-1)/2,lev+1,nr1)/4.);
+
+						}else if(i%2==1){//we add to top and bottom
+							//cout<<"tb\n";
+							//if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
+								//grids[lev][(i)*nr+j] += grids[lev+1][((i+1)/2)*(nr1)+(j)/2]/2.;// top
+								setNr(i,j,lev,nr,getNr((i+1)/2,(j)/2,lev+1,nr1)/2.);							
+							//if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
+								//grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j)/2]/2.;// bottom
+								setNr(i,j,lev,nr,getNr((i-1)/2,(j)/2,lev+1,nr1)/2.);
+
+						}else{//we add to left and right		
+							//cout<<"rl\n";
+						//	if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
+								//grids[lev][(i)*nr+j] += grids[lev+1][((i)/2)*(nr1)+(j+1)/2]/2.;//right 	
+								setNr(i,j,lev,nr,getNr((i)/2,(j+1)/2,lev+1,nr1)/2.);						
+						//	if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
+								//grids[lev][(i)*nr+j] += grids[lev+1][((i)/2)*(nr1)+(j-1)/2]/2.;//right 
+								setNr(i,j,lev,nr,getNr((i)/2,(j-1)/2,lev+1,nr1)/2.);
+						}
+					}
+				}
+			}
+			
+		}
+
 		//level
 		void recoursionMG(int lev){
 			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
-			for(int i=0;i<50;i++)
+			for(int i=0;i<2;i++)
 				smooth(gridsB[lev],gridsR[lev],(1<<(l-lev))+1,f[lev]);
-			return;
+			//return;
 			if(lev + 1 == l)
 				return;
 			//debug
@@ -271,7 +359,7 @@ class MG{
 
 				//cout<<"before residualNorm:"<<residualNorm(lev)<<"\n";
 
-			interpolation(lev);
+			interpolation1(lev);
 
 				//cout<<"after residualNorm:"<<residualNorm(lev)<<"\n";
 

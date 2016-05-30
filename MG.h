@@ -244,6 +244,44 @@ private:
 				grids[lev+1][(nr1/2)*nr1+j]=0;
 		}
 
+		void downsamplingSolSB(int lev){
+			residualCalc(lev);
+			int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1, id=0;
+
+			#pragma omp parallel for private(id) schedule( static )
+			for(int i=1;i<nr1-1;++i){
+				for(int j=1;j<nr1-1;++j){
+					id = 2*i*nr + j*2;
+					grids[lev+1][i*nr1 + j] = 	grids[lev][id]/4. + 
+
+					grids[lev][id-1 + nr]/16.+
+					grids[lev][id-1 + nr]/16.+
+					grids[lev][id+1 - nr]/16.+
+					grids[lev][id-1 - nr]/16.+
+
+					grids[lev][id+1]/8.+
+					grids[lev][id-1]/8. +
+
+					grids[lev][id + nr]/8. + 
+					grids[lev][id - nr]/8.;
+				}
+			}
+
+			double yTB = 1., xLR = -1,h=2./(nr1-1);
+			for(int i=0;i<nr1;++i){
+				grids[lev+1][i*nr1] = polar(-1.,yTB);//(i,N) -first column
+				grids[lev+1][i*nr1+nr1-1] = polar(1.,yTB);// (i,1) -last column
+				grids[lev+1][nr1*(nr1-1)+i] = polar(xLR,-1.);// (1,i) -first row
+				grids[lev+1][i] = polar(xLR,1.);// (N,i) -last row
+				yTB-=h;
+				xLR+=h;			
+			}
+
+			for(int j=nr1/2;j<nr1;++j)
+				grids[lev+1][(nr1/2)*nr1+j]=0;
+		}
+
 		void interpolateSol(int lev){//from nr/2 to nr, (a) is (nr/2)*(nr/2)
 			//bi-linear interpolation
 			int nr = (1<<(l-lev))+1;
@@ -287,6 +325,50 @@ private:
 								grids[lev][(i)*nr+j] += grids[lev+1][((i)/2)*(nr1)+(j-1)/2]/2.;//right 
 						}
 					}
+				}
+			}
+
+			double yTB = 1., xLR = -1,h = 2./(nr-1);
+			for(int i=0;i<nr;++i){
+				grids[lev][i*nr] = polar(-1.,yTB);//(i,N) -first column
+				grids[lev][i*nr+nr-1] = polar(1.,yTB);// (i,1) -last column
+				grids[lev][nr*(nr-1)+i] = polar(xLR,-1.);// (1,i) -first row
+				grids[lev][i] = polar(xLR,1.);// (N,i) -last row
+				yTB-=h;
+				xLR+=h;			
+			}
+			
+			for(int j=nr/2;j<nr;++j)
+				grids[lev][(nr/2)*nr+j]=0;
+		}
+
+		void interpolationSBSol(int lev){
+			int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1, id=0;
+			double val = 0;
+
+			//#pragma omp parallel for  schedule( static )
+			for(int i=1;i<nr-1;++i)
+				for(int j=1;j<nr-1;++j)
+					grids[lev][i*nr+j] = 0;
+
+			//#pragma omp parallel for private(val,id) reduction(+:grids[lev]) schedule( static )
+			for(int i=1;i<nr1-1;++i){
+				for(int j=1;j<nr1-1;++j){
+					id = 2*i*nr + j*2;
+					val  = grids[lev+1][i*nr1 + j];
+					grids[lev][id] = val;
+
+					grids[lev][id-1 + nr] += val/4.;
+					grids[lev][id-1 + nr] += val/4.;
+					grids[lev][id+1 - nr] += val/4.;
+					grids[lev][id-1 - nr] += val/4.;
+
+					grids[lev][id+1] += val/2.;
+					grids[lev][id-1] += val/2.;
+
+					grids[lev][id + nr] += val/2.;
+					grids[lev][id - nr] += val/2.;
 				}
 			}
 
@@ -435,9 +517,11 @@ private:
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
 
 			if(vCycles == -1 && lev + 2 != l){
-				downsamplingSol(lev);
+				//downsamplingSol(lev);
+				downsamplingSolSB(lev);
 				recoursionMG(lev+1,-1);
 				interpolateSol(lev);
+				//interpolationSBSol(lev);
 			}
 
 			//return;

@@ -5,12 +5,13 @@
 
 #include "MG.h"
 #include "Timer.h"
+#include <sys/time.h>
 
 
 using namespace std;
 
 //#define DEBUG
-//#define CLUSTER
+#define CLUSTER
 
 #ifdef DEBUG
 	#include "TEST.h"
@@ -32,6 +33,7 @@ int main(int argc, char *argv[]){
 
 		MG solver(l,n); 
 		#ifdef CLUSTER
+			solver.initiate();
 			solver.writeGnuFile("init.dat");
 			std::cout<<"Your Alias: "<<"teamAlias"<<std::endl;
 			struct timeval t0, t;

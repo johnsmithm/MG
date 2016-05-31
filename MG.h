@@ -645,7 +645,7 @@ private:
 			//perform MG n times
 			for(int i=0;i<n;++i){
 				recoursionMG(0,1);
-				cout<<"Step:"<<i<<"\n";
+				/*cout<<"Step:"<<i<<"\n";
 			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
 					cout<<"residualNorm:"<<residualNorm(0)<<"\n";
 					resvector[i]= residualNorm(0);	
@@ -653,7 +653,7 @@ private:
 					if(i>0){
 						double convergencerate = resvector[i]/resvector[i-1];
 						cout<< "convergence rate at step :  "<<" "<<i<<"="<< convergencerate<<"\n" ;
-					}
+					}*/
 				}
 				
 					

@@ -60,7 +60,7 @@ private:
 			//(red-black) Gauss-Seidel for relaxation
 			//make two for loops for red and black nodes, it is enough for the task
 			double h = 2./(nr-1);
-			double st = 1./(h*h), co = 4./(h*h); // here we have the stencil
+			double  co = (h*h)/4.; // here we have the stencil
 			//todo calculate the stencil corect
 			
 			//exclude from smoothing inner boundary
@@ -68,17 +68,19 @@ private:
 			//int xIndexInnerBoundary = nr / 2 ;
 
 			//black nodes
+#pragma omp parallel for schedule( static )
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?1:2);j<nr-1;j+=2)
 					if(!(i == (nr / 2) && j >= (nr / 2)))
-						a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j]) + st*(a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+						a[i*nr+j] = (0.25*(a[(i-1)*nr+j]+a[(i+1)*nr+j]) + 0.25*(a[i*nr+j+1]+a[i*nr+j-1])) + f2[i*nr+j]*co;
 
 
 			//red nodes
+#pragma omp parallel for schedule( static )
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?2:1);j<nr-1;j+=2)
 					if(!(i == (nr / 2) && j >= (nr / 2)))
-						a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j] + a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+						a[i*nr+j] = (0.25*(a[(i-1)*nr+j]+a[(i+1)*nr+j] + a[i*nr+j+1]+a[i*nr+j-1])) + f2[i*nr+j]*co;
 					//else cerr<<'-';
 			//cerr<<"\n";
 
@@ -231,13 +233,16 @@ private:
 
 			//set correct boundaries
 			double yTB = 1., xLR = -1;
+#pragma omp parallel for schedule( static )
 			for(int i=0;i<nr1;++i){
+yTB= 1. - h*i;
+				xLR=-1. + h*i;
 				grids[lev+1][i*nr1] = polar(-1.,yTB);//(i,N) -first column
 				grids[lev+1][i*nr1+nr1-1] = polar(1.,yTB);// (i,1) -last column
 				grids[lev+1][nr1*(nr1-1)+i] = polar(xLR,-1.);// (1,i) -first row
 				grids[lev+1][i] = polar(xLR,1.);// (N,i) -last row
-				yTB-=h;
-				xLR+=h;			
+				//yTB-=h;
+				//xLR+=h;			
 			}
 
 			for(int j=nr1/2;j<nr1;++j)
@@ -245,10 +250,10 @@ private:
 		}
 
 		void downsamplingSolSB(int lev){
-			residualCalc(lev);
-			int nr = (1<<(l-lev))+1;
-			int nr1 = (1<<(l-lev-1))+1, id=0;
-
+			//residualCalc(lev);
+			//int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1;//, id=0;
+/*
 			#pragma omp parallel for private(id) schedule( static )
 			for(int i=1;i<nr1-1;++i){
 				for(int j=1;j<nr1-1;++j){
@@ -267,15 +272,17 @@ private:
 					grids[lev][id - nr]/8.;
 				}
 			}
-
+*/
 			double yTB = 1., xLR = -1,h=2./(nr1-1);
+#pragma omp parallel for schedule( static )
 			for(int i=0;i<nr1;++i){
+				yTB= 1. - h*i;
+				xLR=-1. + h*i;	
 				grids[lev+1][i*nr1] = polar(-1.,yTB);//(i,N) -first column
 				grids[lev+1][i*nr1+nr1-1] = polar(1.,yTB);// (i,1) -last column
 				grids[lev+1][nr1*(nr1-1)+i] = polar(xLR,-1.);// (1,i) -first row
 				grids[lev+1][i] = polar(xLR,1.);// (N,i) -last row
-				yTB-=h;
-				xLR+=h;			
+						
 			}
 
 			for(int j=nr1/2;j<nr1;++j)
@@ -329,13 +336,16 @@ private:
 			}
 
 			double yTB = 1., xLR = -1,h = 2./(nr-1);
+#pragma omp parallel for schedule( static )
 			for(int i=0;i<nr;++i){
+yTB= 1. - h*i;
+				xLR=-1. + h*i;
 				grids[lev][i*nr] = polar(-1.,yTB);//(i,N) -first column
 				grids[lev][i*nr+nr-1] = polar(1.,yTB);// (i,1) -last column
 				grids[lev][nr*(nr-1)+i] = polar(xLR,-1.);// (1,i) -first row
 				grids[lev][i] = polar(xLR,1.);// (N,i) -last row
-				yTB-=h;
-				xLR+=h;			
+				//yTB-=h;
+				//xLR+=h;			
 			}
 			
 			for(int j=nr/2;j<nr;++j)
@@ -373,13 +383,16 @@ private:
 			}
 
 			double yTB = 1., xLR = -1,h = 2./(nr-1);
+#pragma omp parallel for schedule( static )
 			for(int i=0;i<nr;++i){
+yTB= 1. - h*i;
+				xLR=-1. + h*i;
 				grids[lev][i*nr] = polar(-1.,yTB);//(i,N) -first column
 				grids[lev][i*nr+nr-1] = polar(1.,yTB);// (i,1) -last column
 				grids[lev][nr*(nr-1)+i] = polar(xLR,-1.);// (1,i) -first row
 				grids[lev][i] = polar(xLR,1.);// (N,i) -last row
-				yTB-=h;
-				xLR+=h;			
+				//yTB-=h;
+				//xLR+=h;			
 			}
 			
 			for(int j=nr/2;j<nr;++j)
@@ -518,6 +531,7 @@ private:
 
 			if(vCycles == -1 && lev + 2 != l){
 				//downsamplingSol(lev);
+				if(lev+3 == l)
 				downsamplingSolSB(lev);
 				recoursionMG(lev+1,-1);
 				interpolateSol(lev);

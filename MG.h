@@ -164,6 +164,7 @@ private:
 			}
 
 			//set boundaries to zeor
+#pragma omp parallel for  schedule( static )
 				for(int j=0;j<nr1;++j){
 					f[lev+1][(nr1-1)*nr1+j]=0;
 					f[lev+1][(0)*nr1+j]=0;
@@ -233,7 +234,7 @@ private:
 
 			//set correct boundaries
 			double yTB = 1., xLR = -1;
-#pragma omp parallel for schedule( static )
+#pragma omp parallel for private(yTB,xLR) schedule( static )
 			for(int i=0;i<nr1;++i){
 yTB= 1. - h*i;
 				xLR=-1. + h*i;
@@ -274,7 +275,7 @@ yTB= 1. - h*i;
 			}
 */
 			double yTB = 1., xLR = -1,h=2./(nr1-1);
-#pragma omp parallel for schedule( static )
+#pragma omp parallel for private(yTB,xLR) schedule( static )
 			for(int i=0;i<nr1;++i){
 				yTB= 1. - h*i;
 				xLR=-1. + h*i;	
@@ -336,7 +337,7 @@ yTB= 1. - h*i;
 			}
 
 			double yTB = 1., xLR = -1,h = 2./(nr-1);
-#pragma omp parallel for schedule( static )
+#pragma omp parallel for private(yTB,xLR) schedule( static )
 			for(int i=0;i<nr;++i){
 yTB= 1. - h*i;
 				xLR=-1. + h*i;
@@ -383,7 +384,7 @@ yTB= 1. - h*i;
 			}
 
 			double yTB = 1., xLR = -1,h = 2./(nr-1);
-#pragma omp parallel for schedule( static )
+#pragma omp parallel for private(yTB,xLR) schedule( static )
 			for(int i=0;i<nr;++i){
 yTB= 1. - h*i;
 				xLR=-1. + h*i;

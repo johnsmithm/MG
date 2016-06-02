@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -Wshadow -Werror -fopenmp -O3 -DNDEBUG  -ffast-math -march=native
+CXXFLAGS = -std=c++11 -Wall -Wextra -Wshadow -Werror -fopenmp -O3 -DNDEBUG  -ffast-math -march=native -ftree-vectorizer-verbose=1
 EXTRA = -ftree-vectorizer-verbose=1
 TARGET =mgsolve
 HXX= MG.h Timer.h

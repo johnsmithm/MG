@@ -2,14 +2,15 @@
 #include<iostream>
 #include<fstream>
 #include<vector>
-
+#include <omp.h>
 using namespace std;
 
 class MG{
 	public:
 		MG(int l_, int n_):l(l_),n(n_),N((1<<l)+1){
 		//do something
-			//cerr<<l<<'\n';  
+			//cerr<<l<<'\n';
+			omp_set_num_threads(32);  
 		}
 
 		~MG(){}
@@ -117,6 +118,7 @@ public:
 			int hR=nr/2;//backCells, halfRow, smallIndex;
 
 			//black nodes
+			#pragma omp parallel for schedule( static )
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?1:2);j<nr-1;j+=2)
 					if(!(i == hR && j >= (hR))){		
@@ -130,6 +132,7 @@ public:
 
 
 			//red nodes
+					#pragma omp parallel for  schedule( static )
 			for(int i=1;i<nr-1;++i)
 				for(int j=(i%2?2:1);j<nr-1;j+=2)
 					if(!(i == hR && j >= hR)){
@@ -186,6 +189,7 @@ public:
 			int nr = (1<<(l-lev)) +1 ;
 			double h = 2./(nr-1);            // To check if this gives the updated fine matrix after interpolation or the original matrix
             double st = -1./(h*h), co = 4./(h*h);
+            #pragma omp parallel for  schedule( static )
 			for ( int i=1;i< nr-1 ; i+=1)
 				{
 				for (int j=1;j<nr-1;j+=1)
@@ -220,7 +224,7 @@ public:
 			int nr = (1<<(l-lev))+1;
 			int nr1 = (1<<(l-lev-1))+1, id=0;
 
-			//#pragma omp parallel for private(id) schedule( static )
+			#pragma omp parallel for  schedule( static )
 			for(int i=1;i<nr1-1;++i){
 				for(int j=1;j<nr1-1;++j){
 					id = 2*i*nr + j*2;
@@ -453,7 +457,7 @@ public:
 			int nr1 = (1<<(l-lev-1))+1;//, id=0;
 			double val = 0;
 
-			//#pragma omp parallel for private(val,id) schedule( static )
+			#pragma omp parallel for private(val) schedule( static )
 			for(int i=1;i<nr1-1;++i){
 				for(int j=1;j<nr1-1;++j){
 					//id = 2*i*nr + j*2;
@@ -553,7 +557,7 @@ public:
 			int nr = (1<<(l-lev))+1;
 			int nr1 = (1<<(l-lev-1))+1;
 
-			//#pragma omp parallel for schedule( static )
+			#pragma omp parallel for schedule( static )
 			for(int i=1;i<nr-1;++i){
 				for(int j=1;j<nr-1;++j){
 					//if((i == (nr / 2) && j >= (nr / 2)))
@@ -886,7 +890,7 @@ public:
 			//perform MG n times
 			for(int i=0;i<n;++i){
 				recoursionMG(0,1);
-				cout<<"Step:"<<i<<"\n";
+				/*cout<<"Step:"<<i<<"\n";
 			  	//cout<<"Lnorm:"<<Lnorm()<<"\n";
 					cout<<"residualNorm:"<<residualNorm(0)<<"\n";
 					double resvectorC= residualNorm(0);	
@@ -895,7 +899,7 @@ public:
 						double convergencerate = resvectorC/resvector;						
 						cout<< "convergence rate at step :  "<<" "<<i<<"="<< convergencerate<<"\n" ;
 					}
-					resvector = resvectorC;
+					resvector = resvectorC;*/
 				}
 				
 					

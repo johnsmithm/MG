@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
 	(void) argc; //to suppress Warnings about unused argc
 	assert(argc>0);
 	int l = atoi(argv[1]);
-	int n = 8;//atoi(argv[2]);
+	int n = atoi(argv[2]);
 	//cerr<<l<<'\n';  
 	//cerr<<l<<'\n'; 
 

@@ -68,19 +68,31 @@ private:
 			//int xIndexInnerBoundary = nr / 2 ;
 
 			//black nodes
-			for(int i=1;i<nr-1;++i)
+			for(int i=1;i<nr/2;++i)
 				for(int j=(i%2?1:2);j<nr-1;j+=2)
-					if(!(i == (nr / 2) && j >= (nr / 2)))
+					//if(!(i == (nr / 2) && j >= (nr / 2)))
 						a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j]) + st*(a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+
+			for(int j=((nr/2)%2?1:2);j<(nr/2);++j){
+				int i = nr/2;
+				a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i-1)*nr+j]) + st*(a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+				//cerr<<"-";
+			}
 
 
 			//red nodes
-			for(int i=1;i<nr-1;++i)
+			for(int i=1;i<nr/2;++i)
 				for(int j=(i%2?2:1);j<nr-1;j+=2)
-					if(!(i == (nr / 2) && j >= (nr / 2)))
+					//if(!(i == (nr / 2) && j >= (nr / 2)))
 						a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i+1)*nr+j] + a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
 					//else cerr<<'-';
 			//cerr<<"\n";
+
+			for(int j=((nr/2)%2?2:1);j<(nr/2);++j){
+				int i = nr/2;
+				a[i*nr+j] = (st*(a[(i-1)*nr+j]+a[(i-1)*nr+j]) + st*(a[i*nr+j+1]+a[i*nr+j-1]) + f2[i*nr+j])/co;
+				//cerr<<"=";
+			}
 
 			//for(int i=nr/2;i<nr-1;++i)
 				//a[(nr/2)*nr + i] = 0;
@@ -245,12 +257,12 @@ private:
 		}
 
 		void downsamplingSolSB(int lev){
-			residualCalc(lev);
-			int nr = (1<<(l-lev))+1;
-			int nr1 = (1<<(l-lev-1))+1, id=0;
-
+			//residualCalc(lev);
+	//		int nr = (1<<(l-lev))+1;
+			int nr1 = (1<<(l-lev-1))+1;//, id=0;
+/*
 			#pragma omp parallel for private(id) schedule( static )
-			for(int i=1;i<nr1-1;++i){
+			for(int i=1;i<nr1/2;++i){
 				for(int j=1;j<nr1-1;++j){
 					id = 2*i*nr + j*2;
 					grids[lev+1][i*nr1 + j] = 	grids[lev][id]/4. + 
@@ -268,6 +280,23 @@ private:
 				}
 			}
 
+			for(int j=1;j<nr1/2;++j){
+				int i = nr1/2;
+				id = 2*i*nr + j*2;
+					grids[lev+1][i*nr1 + j] = 	grids[lev][id]/4. + 
+
+				//	grids[lev][id-1 + nr]/16.+
+				//	grids[lev][id-1 + nr]/16.+
+					grids[lev][id+1 - nr]/16.+
+					grids[lev][id-1 - nr]/16.+
+
+					grids[lev][id+1]/8.+
+					grids[lev][id-1]/8. +
+
+				//	grids[lev][id + nr]/8. + 
+					grids[lev][id - nr]/8.;
+			}
+*/
 			double yTB = 1., xLR = -1,h=2./(nr1-1);
 			for(int i=0;i<nr1;++i){
 				grids[lev+1][i*nr1] = polar(-1.,yTB);//(i,N) -first column
@@ -288,7 +317,7 @@ private:
 			int nr1 = (1<<(l-lev-1))+1;
 
 			#pragma omp parallel for schedule( static )
-			for(int i=1;i<nr-1;++i){
+			for(int i=1;i<nr/2;++i){
 				for(int j=1;j<nr-1;++j){
 					//if((i == (nr / 2) && j >= (nr / 2)))
 						//continue;
@@ -328,6 +357,45 @@ private:
 				}
 			}
 
+			for(int j=1;j<nr/2;++j){
+					//if((i == (nr / 2) && j >= (nr / 2)))
+						//continue;
+					//construct each cell
+					//amd so on more 9 times, or can use the stencil and one more for loop
+					//grids[lev][indices2] += grids[lev+1][indices1] * somesclaler(1/2,1,1/4); 
+				    int i = nr/2;
+					if(i%2==0 && j%2==0){//the point to be restricted
+						grids[lev][(i)*nr+j] = grids[lev+1][(i/2)*nr1+j/2];
+						//cout<<"the cell\n";
+					}else{
+						if(i%2==1 && j%2==1){//we add to the diagonal
+							//cout<<"diagonal"<<"\n";
+							//if(notBoundary(((i+1)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev][(i)*nr+j] = grids[lev+1][((i-1)/2)*(nr1)+(j+1)/2]/4.;//right top							
+							//if(notBoundary(((i-1)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j+1)/2]/4.;//right bottom
+							//if(notBoundary(((i+1)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j-1)/2]/4.;//left top
+							//if(notBoundary(((i-1)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j-1)/2]/4.;//right bottom
+
+						}else if(i%2==1){//we add to top and bottom
+							//cout<<"tb\n";
+							//if(notBoundary(((i+1)/2)*(nr1)+(j)/2,nr1))
+								grids[lev][(i)*nr+j] = grids[lev+1][((i-1)/2)*(nr1)+(j)/2]/2.;// top							
+							//if(notBoundary(((i-1)/2)*(nr1)+(j)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i-1)/2)*(nr1)+(j)/2]/2.;// bottom
+
+						}else{//we add to left and right		
+							//cout<<"rl\n";
+							//if(notBoundary(((i)/2)*(nr1)+(j+1)/2,nr1))
+								grids[lev][(i)*nr+j] = grids[lev+1][((i)/2)*(nr1)+(j+1)/2]/2.;//right 							
+							//if(notBoundary(((i)/2)*(nr1)+(j-1)/2,nr1))
+								grids[lev][(i)*nr+j] += grids[lev+1][((i)/2)*(nr1)+(j-1)/2]/2.;//right 
+						}
+					}
+				}
+
 			double yTB = 1., xLR = -1,h = 2./(nr-1);
 			for(int i=0;i<nr;++i){
 				grids[lev][i*nr] = polar(-1.,yTB);//(i,N) -first column
@@ -353,7 +421,7 @@ private:
 					grids[lev][i*nr+j] = 0;
 
 			//#pragma omp parallel for private(val,id) reduction(+:grids[lev]) schedule( static )
-			for(int i=1;i<nr1-1;++i){
+			for(int i=1;i<nr1/2;++i){
 				for(int j=1;j<nr1-1;++j){
 					id = 2*i*nr + j*2;
 					val  = grids[lev+1][i*nr1 + j];
@@ -370,6 +438,24 @@ private:
 					grids[lev][id + nr] += val/2.;
 					grids[lev][id - nr] += val/2.;
 				}
+			}
+
+			for(int j=1;j<nr1/2;++j){
+				int i = nr1/2;
+				id = 2*i*nr + j*2;
+					val  = grids[lev+1][i*nr1 + j];
+					grids[lev][id] = val;
+
+					//grids[lev][id-1 + nr] += val/4.;
+					//grids[lev][id-1 + nr] += val/4.;
+					grids[lev][id+1 - nr] += val/4.;
+					grids[lev][id-1 - nr] += val/4.;
+
+					grids[lev][id+1] += val/2.;
+					grids[lev][id-1] += val/2.;
+
+					//grids[lev][id + nr] += val/2.;
+					grids[lev][id - nr] += val/2.;
 			}
 
 			double yTB = 1., xLR = -1,h = 2./(nr-1);
@@ -390,7 +476,7 @@ private:
 			int nr = (1<<(l-lev)) +1 ;
 			double h = 2./(nr-1);            // To check if this gives the updated fine matrix after interpolation or the original matrix
             double st = -1./(h*h), co = 4./(h*h);
-			for ( int i=1;i< nr-1 ; i+=1)
+			for ( int i=1;i< nr/2 ; i+=1)
 				{
 				for (int j=1;j<nr-1;j+=1)
 				     {
@@ -401,6 +487,11 @@ private:
 
 				      }
 				}
+			for(int j=1;j<nr/2;++j)
+			{		int i = nr/2;
+					re[lev][i*nr+j] = f[lev][i*nr+j] - ( st*(grids[lev][(i-1)*nr+j]+grids[lev][(i-1)*nr+j])
+					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]);
+			}
 
 		}
 
@@ -410,7 +501,7 @@ private:
 			int nr1 = (1<<(l-lev-1))+1, id=0;
 
 			#pragma omp parallel for private(id) schedule( static )
-			for(int i=1;i<nr1-1;++i){
+			for(int i=1;i<nr1/2;++i){
 				for(int j=1;j<nr1-1;++j){
 					id = 2*i*nr + j*2;
 					f[lev+1][i*nr1 + j] = 	re[lev][id]/4. + 
@@ -428,6 +519,24 @@ private:
 				}
 			}
 
+			for(int j=1;j<nr1/2;++j)
+			{
+					id = 2*(nr1/2)*nr + j*2;
+
+					f[lev+1][(nr1/2)*nr1 + j] = 	re[lev][id]/4. + 
+
+					re[lev][id-1 - nr]/16.+ //up
+					re[lev][id-1 - nr]/16.+ //up
+					re[lev][id+1 - nr]/16.+
+					re[lev][id-1 - nr]/16.+
+
+					re[lev][id+1]/8.+
+					re[lev][id-1]/8. +
+
+					re[lev][id - nr]/8. + //up
+					re[lev][id - nr]/8.;
+			}
+
 			for(int j=nr1/2;j<nr1;++j)
 					f[lev+1][(nr1/2)*nr1+j]=0;
 		}
@@ -438,7 +547,7 @@ private:
 			double val = 0;
 
 			#pragma omp parallel for private(val,id) schedule( static )
-			for(int i=1;i<nr1-1;++i){
+			for(int i=1;i<nr1/2-1;++i){
 				for(int j=1;j<nr1-1;++j){
 					id = 2*i*nr + j*2;
 					val  = grids[lev+1][i*nr1 + j];
@@ -455,6 +564,25 @@ private:
 					grids[lev][id + nr] += val/2.;
 					grids[lev][id - nr] += val/2.;
 				}
+			}
+
+			for(int j=1;j<nr1/2;++j)
+			{
+					id = 2*(nr1/2)*nr + j*2;
+					int i = nr1/2;
+					val  = grids[lev+1][i*nr1 + j];
+					grids[lev][id] += val;
+
+					//grids[lev][id-1 + nr] += val/4.;
+					//grids[lev][id-1 + nr] += val/4.;
+					grids[lev][id+1 - nr] += val/4.;
+					grids[lev][id-1 - nr] += val/4.;
+
+					grids[lev][id+1] += val/2.;
+					grids[lev][id-1] += val/2.;
+
+					//grids[lev][id + nr] += val/2.;
+					grids[lev][id - nr] += val/2.;
 			}
 
 			for(int j=nr/2;j<nr;++j)
@@ -515,9 +643,10 @@ private:
 			//for testing with GS method just ancoment the return and set 2 to 20 in the for loop
 			for(int i=0;i<2;i++)
 				smooth(grids[lev],(1<<(l-lev))+1,f[lev]);
-
+//return;
 			if(vCycles == -1 && lev + 2 != l){
 				//downsamplingSol(lev);
+				if(lev+3 == l)
 				downsamplingSolSB(lev);
 				recoursionMG(lev+1,-1);
 				interpolateSol(lev);
@@ -581,7 +710,9 @@ private:
 				xLR = -1.;
 				for (int j=0;j<nr;j+=1)
 					{
+						if(i<=nr/2)
 						temp =  grids[0][(i*nr)+j] - polar(xLR,yTB);
+					else temp =  grids[0][((nr-i)*nr)+j] - polar(xLR,yTB);
 						//sqrt(sqrt(yTB*yTB+xLR*xLR))*sin((atan(yTB/xLR)+(xLR > 0 ? (yTB > 0 ? 0 : 4*pi) : 2*pi))/2.);
 						if(temp<0)temp*=-1;
 						/*if(tM < temp){
@@ -600,7 +731,7 @@ private:
 					yTB-=h;
 			}
 			//cerr<<nr<<" "<<x1<<" "<<y1<<" "<<tM<<"-\n";
-			double norm = sqrt(error/(nr*nr));
+			double norm = sqrt(error/(nr*(nr)));
 			return norm;
 		}
 
@@ -616,14 +747,25 @@ private:
 				for (int j=1;j<nr-1;j+=1)
 				     {
 				     	if((i == (nr / 2) && j >= (nr / 2)))continue;
+				     	if(i<nr/2)
 					temp = f[lev][i*nr+j] - ( st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
 					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]);
+				else if(i==nr/2)
+					temp = f[lev][i*nr+j] - ( st*(grids[lev][(i-1)*nr+j]+grids[lev][(i-1)*nr+j])
+					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]);
+				else{
+					int d = i;
+					i = nr - i - 1;
+					temp = f[lev][i*nr+j] - ( st*(grids[lev][(i-1)*nr+j]+grids[lev][(i+1)*nr+j])
+					+ st*(grids[lev][i*nr+j+1]+grids[lev][i*nr+j-1]) + co*grids[lev][i*nr+j]);
+					i = d;
+				}
 
 					residuum+=temp*temp;
 
 				      }
 				}
- 					double norm= sqrt(residuum/(dom*dom));
+ 					double norm= sqrt(residuum/(dom*(dom)));
 					return norm;
 
 		}
